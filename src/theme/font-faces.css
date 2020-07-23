@@ -1,0 +1,56 @@
+/* roboto-latin-300-normal*/
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-display: optional;
+  font-weight: 300;
+  src: local("Roboto Light"), local("Roboto-Light"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-300-normal.woff2")
+      format("woff2"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-300-normal.woff")
+      format("woff"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-300-normal.ttf")
+      format("truetype");
+}
+/* roboto-latin-400-normal*/
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-display: optional;
+  font-weight: 400;
+  src: local("Roboto"), local("Roboto-Regular"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-400-normal.woff2")
+      format("woff2"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-400-normal.woff")
+      format("woff"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-400-normal.ttf")
+      format("truetype");
+}
+/* roboto-latin-500-normal*/
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-display: optional;
+  font-weight: 500;
+  src: local("Roboto Medium"), local("Roboto-Medium"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-500-normal.woff2")
+      format("woff2"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-500-normal.woff")
+      format("woff"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-500-normal.ttf")
+      format("truetype");
+}
+/* roboto-latin-700-normal*/
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-display: optional;
+  font-weight: 700;
+  src: local("Roboto Bold"), local("Roboto-Bold"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-700-normal.woff2")
+      format("woff2"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-700-normal.woff")
+      format("woff"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-700-normal.ttf")
+      format("truetype");
+}

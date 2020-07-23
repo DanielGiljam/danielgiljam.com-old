@@ -1,8 +1,13 @@
-import {Theme} from "@material-ui/core/styles"
+import {
+  Theme,
+  createMuiTheme,
+  responsiveFontSizes,
+} from "@material-ui/core/styles"
 
 import {breakpoint, pageSpacing} from "./constants"
 
-const createTheme = (theme: Theme): Theme => {
+const createTheme = (): Theme => {
+  const theme = responsiveFontSizes(createMuiTheme({palette: {type: "dark"}}))
   theme.overrides = {
     MuiCssBaseline: {
       "@global": {

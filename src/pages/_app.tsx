@@ -1,9 +1,5 @@
 import CssBaseline from "@material-ui/core/CssBaseline"
-import {
-  ThemeProvider,
-  createMuiTheme,
-  responsiveFontSizes,
-} from "@material-ui/core/styles"
+import {ThemeProvider} from "@material-ui/core/styles"
 import {AppProps} from "next/app"
 import {useEffect} from "react"
 
@@ -18,10 +14,7 @@ const App = ({Component, pageProps}: AppProps): JSX.Element => {
     }
   }, [])
   return (
-    <ThemeProvider
-      theme={createTheme(
-        responsiveFontSizes(createMuiTheme({palette: {type: "dark"}})),
-      )}>
+    <ThemeProvider theme={createTheme()}>
       <CssBaseline />
       <Component {...pageProps} />
     </ThemeProvider>

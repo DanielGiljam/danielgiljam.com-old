@@ -1,8 +1,4 @@
-import {
-  ServerStyleSheets,
-  createMuiTheme,
-  responsiveFontSizes,
-} from "@material-ui/core/styles"
+import {ServerStyleSheets} from "@material-ui/core/styles"
 import _document, {
   DocumentContext,
   DocumentInitialProps,
@@ -22,11 +18,7 @@ class Document extends _document {
         <Head>
           {/* PWA primary color */}
           <meta
-            content={
-              createTheme(
-                responsiveFontSizes(createMuiTheme({palette: {type: "dark"}})),
-              ).palette.primary.main
-            }
+            content={createTheme().palette.primary.main}
             name={"theme-color"}
           />
           <link

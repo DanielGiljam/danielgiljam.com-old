@@ -5,7 +5,7 @@ import ListItemText from "@material-ui/core/ListItemText"
 import {ProjectAsProp, ProjectsAsProp} from "../types/data/Project"
 
 const Item = ({project}: ProjectAsProp): JSX.Element => (
-  <ListItem button>
+  <ListItem component={"li"} button>
     <ListItemText primary={project.name} secondary={project.slug} />
   </ListItem>
 )

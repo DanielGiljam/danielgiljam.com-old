@@ -4,10 +4,8 @@ import path from "path"
 import Paper from "@material-ui/core/Paper"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import {GetStaticProps} from "next"
-import Head from "next/head"
 
 import Footer from "../components/Footer"
-import Header from "../components/Header"
 import ProjectList from "../components/ProjectList"
 import {breakpoint} from "../theme/constants"
 import {ProjectsAsProp} from "../types/data/Project"
@@ -22,9 +20,18 @@ export const getStaticProps: GetStaticProps<ProjectsAsProp> = async () => ({
 
 const useStyles = makeStyles((theme) =>
   createStyles({
-    paper: {
+    div: {
       overflow: "auto",
+      [`@media (min-height: ${theme.breakpoints.values[breakpoint]}px)`]: {
+        display: "contents",
+      },
+      [theme.breakpoints.up(breakpoint)]: {
+        borderRadius: theme.shape.borderRadius,
+      },
+    },
+    paper: {
       flexGrow: 1,
+      overflow: "auto",
       [theme.breakpoints.up(breakpoint)]: {
         borderRadius: theme.shape.borderRadius,
         flexGrow: "unset",
@@ -36,16 +43,12 @@ const useStyles = makeStyles((theme) =>
 const Index = ({projects}: ProjectsAsProp): JSX.Element => {
   const styles = useStyles()
   return (
-    <>
-      <Head>
-        <title>Daniel Giljam</title>
-      </Head>
-      <Header />
+    <div className={styles.div}>
       <Paper className={styles.paper} component={"main"} square>
         <ProjectList projects={projects} />
       </Paper>
       <Footer />
-    </>
+    </div>
   )
 }
 

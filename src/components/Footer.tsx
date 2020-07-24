@@ -9,8 +9,11 @@ const useStyles = makeStyles((theme) =>
       display: "flex",
       justifyContent: "space-between",
     },
+    infoButton: {
+      margin: theme.spacing(1.5) - 3, // "3" comes from the padding of IconButton when size is "small"
+    },
     crText: {
-      padding: theme.spacing(1.5),
+      margin: theme.spacing(1.5),
     },
   }),
 )
@@ -19,7 +22,10 @@ const Footer = (): JSX.Element => {
   const styles = useStyles()
   return (
     <footer className={styles.footer}>
-      <IconButton aria-label={"info"}>
+      <IconButton
+        aria-label={"info"}
+        className={styles.infoButton}
+        size={"small"}>
         <InfoIcon />
       </IconButton>
       <Typography

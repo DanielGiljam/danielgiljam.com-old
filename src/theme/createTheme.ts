@@ -4,7 +4,7 @@ import {
   responsiveFontSizes,
 } from "@material-ui/core/styles"
 
-import {breakpoint, pageSpacing} from "./constants"
+import {breakpoint, defaultSpacing, maxHeight} from "./constants"
 
 const createTheme = (): Theme => {
   const theme = responsiveFontSizes(createMuiTheme({palette: {type: "dark"}}))
@@ -30,13 +30,14 @@ const createTheme = (): Theme => {
           maxHeight: "inherit",
           "& > header > svg": {
             fill: theme.palette.text.primary,
-            margin: theme.spacing(1.5),
+            margin: defaultSpacing(theme),
           },
           [theme.breakpoints.up(breakpoint)]: {
             height: "unset",
-            width:
-              theme.breakpoints.values[breakpoint] -
-              2 * theme.spacing(pageSpacing),
+            width: theme.breakpoints.values[breakpoint],
+            [`@media (min-height: ${maxHeight(theme)}px)`]: {
+              height: maxHeight(theme),
+            },
           },
         },
       },

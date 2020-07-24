@@ -3,6 +3,8 @@ import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import InfoIcon from "@material-ui/icons/InfoOutlined"
 
+import {defaultSpacing} from "../theme/constants"
+
 const useStyles = makeStyles((theme) =>
   createStyles({
     footer: {
@@ -10,10 +12,10 @@ const useStyles = makeStyles((theme) =>
       justifyContent: "space-between",
     },
     infoButton: {
-      margin: theme.spacing(1.5) - 3, // "3" comes from the padding of IconButton when size is "small"
+      margin: defaultSpacing(theme) - 3, // "3" comes from the padding of IconButton when size is "small"
     },
     crText: {
-      margin: theme.spacing(1.5),
+      margin: defaultSpacing(theme),
     },
   }),
 )

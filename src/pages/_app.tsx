@@ -1,9 +1,11 @@
 import CssBaseline from "@material-ui/core/CssBaseline"
+import Paper from "@material-ui/core/Paper"
 import {ThemeProvider} from "@material-ui/core/styles"
 import {AppProps} from "next/app"
 import Head from "next/head"
 import {useEffect} from "react"
 
+import Footer from "../components/Footer"
 import Header from "../components/Header"
 import createTheme from "../theme/createTheme"
 
@@ -25,7 +27,12 @@ const App = ({Component, pageProps}: AppProps): JSX.Element => {
       <ThemeProvider theme={createTheme()}>
         <CssBaseline />
         <Header />
-        <Component {...pageProps} />
+        <div id={"__wrapper"}>
+          <Paper component={"main"} square>
+            <Component {...pageProps} />
+          </Paper>
+          <Footer />
+        </div>
       </ThemeProvider>
     </>
   )

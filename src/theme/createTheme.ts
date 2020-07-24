@@ -28,6 +28,10 @@ const createTheme = (): Theme => {
           height: "inherit",
           width: "inherit",
           maxHeight: "inherit",
+          "& > header > svg": {
+            fill: theme.palette.text.primary,
+            margin: theme.spacing(1.5),
+          },
           [theme.breakpoints.up(breakpoint)]: {
             height: "unset",
             width:

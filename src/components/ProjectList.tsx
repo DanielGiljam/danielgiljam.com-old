@@ -1,13 +1,18 @@
 import List from "@material-ui/core/List"
 import ListItem from "@material-ui/core/ListItem"
 import ListItemText from "@material-ui/core/ListItemText"
+import Link from "next/link"
 
 import {ProjectAsProp, ProjectsAsProp} from "../types/data/Project"
 
 const Item = ({project}: ProjectAsProp): JSX.Element => (
-  <ListItem component={"li"} button>
-    <ListItemText primary={project.name} secondary={project.slug} />
-  </ListItem>
+  <li>
+    <Link as={"/" + project.slug} href={"/[project]"} passHref>
+      <ListItem component={"a"} button>
+        <ListItemText primary={project.name} secondary={project.slug} />
+      </ListItem>
+    </Link>
+  </li>
 )
 
 const ProjectList = ({projects}: ProjectsAsProp): JSX.Element => (

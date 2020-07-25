@@ -1,6 +1,7 @@
 import IconButton from "@material-ui/core/IconButton"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import InfoIcon from "@material-ui/icons/InfoOutlined"
+import Link from "next/link"
 
 import {defaultSpacing} from "../theme/constants"
 
@@ -20,12 +21,15 @@ const Footer = (): JSX.Element => {
   const styles = useStyles()
   return (
     <footer className={styles.footer}>
-      <IconButton
-        aria-label={"info"}
-        className={styles.infoButton}
-        size={"small"}>
-        <InfoIcon />
-      </IconButton>
+      <Link href={"/about"} passHref>
+        <IconButton
+          aria-label={"info"}
+          className={styles.infoButton}
+          component={"a"}
+          size={"small"}>
+          <InfoIcon />
+        </IconButton>
+      </Link>
     </footer>
   )
 }

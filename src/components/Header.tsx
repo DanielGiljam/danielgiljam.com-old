@@ -10,20 +10,20 @@ const useStyles = makeStyles((theme) =>
   createStyles({
     link: {
       "&:hover": {
-        "& > svg": {
+        "& > span > svg": {
           filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 32))",
           transition: theme.transitions.create(["filter", "transform"]),
           transform: "scale(1.03125)",
         },
       },
-      "& > svg": {
+      "& > span > svg": {
         fill: theme.palette.text.primary,
         margin: defaultSpacing(theme),
       },
     },
     linkFocusVisible: {
       outline: "unset",
-      "& > svg": {
+      "& > span > svg": {
         animation: "$linkFocusVisibleAnimation 1s linear infinite alternate",
       },
     },
@@ -47,9 +47,9 @@ const Header = (): JSX.Element => {
       <NextLink as={"/"} href={"/"} passHref>
         <MuiLink
           classes={{focusVisible: styles.linkFocusVisible}}
-          className={styles.link}
-          dangerouslySetInnerHTML={{__html: danielgiljam}}
-        />
+          className={styles.link}>
+          <span dangerouslySetInnerHTML={{__html: danielgiljam}} />
+        </MuiLink>
       </NextLink>
     </header>
   )

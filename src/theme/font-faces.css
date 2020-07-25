@@ -1,3 +1,17 @@
+/* roboto-latin-200-normal*/
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-display: optional;
+  font-weight: 100;
+  src: local("Roboto Thin"), local("Roboto-Thin"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-100-normal.woff2")
+      format("woff2"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-100-normal.woff")
+      format("woff"),
+    url("../../node_modules/fontsource-roboto/files/roboto-latin-100-normal.ttf")
+      format("truetype");
+}
 /* roboto-latin-300-normal*/
 @font-face {
   font-family: "Roboto";

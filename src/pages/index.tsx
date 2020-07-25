@@ -3,7 +3,6 @@ import path from "path"
 
 import {GetStaticProps} from "next"
 
-import Main from "../components/Main"
 import ProjectList from "../components/ProjectList"
 import {ProjectsAsProp} from "../types/data/Project"
 
@@ -16,9 +15,7 @@ export const getStaticProps: GetStaticProps<ProjectsAsProp> = async () => ({
 })
 
 const Index = ({projects}: ProjectsAsProp): JSX.Element => (
-  <Main>
-    <ProjectList projects={projects} />
-  </Main>
+  <ProjectList projects={projects} />
 )
 
 export default Index

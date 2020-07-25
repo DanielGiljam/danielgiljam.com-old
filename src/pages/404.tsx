@@ -1,7 +1,6 @@
 import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 
-import Main from "../components/Main"
 import {defaultSpacing} from "../theme/constants"
 
 const useStyles = makeStyles((theme) =>
@@ -25,12 +24,12 @@ const useStyles = makeStyles((theme) =>
 const NotFound = (): JSX.Element => {
   const styles = useStyles()
   return (
-    <Main className={styles.main}>
+    <>
       <Typography className={styles.h1} variant={"h1"}>
         404
       </Typography>
       <Typography variant={"body1"}>Not Found.</Typography>
-    </Main>
+    </>
   )
 }
 

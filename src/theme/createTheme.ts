@@ -32,7 +32,7 @@ const createTheme = (): Theme => {
             height: "unset",
             width: theme.breakpoints.values[breakpoint],
             [`@media (min-height: ${maxHeight(theme)}px)`]: {
-              height: maxHeight(theme),
+              maxHeight: maxHeight(theme),
             },
           },
         },

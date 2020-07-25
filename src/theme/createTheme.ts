@@ -28,8 +28,8 @@ const createTheme = (): Theme => {
           height: "inherit",
           width: "inherit",
           maxHeight: "inherit",
+          justifyContent: "inherit",
           [theme.breakpoints.up(breakpoint)]: {
-            height: "unset",
             width: theme.breakpoints.values[breakpoint],
             [`@media (min-height: ${maxHeight(theme)}px)`]: {
               maxHeight: maxHeight(theme),
@@ -37,17 +37,23 @@ const createTheme = (): Theme => {
           },
         },
         "#__wrapper": {
+          display: "inherit",
+          flexDirection: "inherit",
+          flexGrow: 1,
           overflow: "auto",
           [`@media (min-height: ${theme.breakpoints.values[breakpoint]}px)`]: {
             display: "contents",
           },
           [theme.breakpoints.up(breakpoint)]: {
             borderRadius: theme.shape.borderRadius,
+            flexGrow: "unset",
           },
         },
         main: {
           flexGrow: 1,
-          overflow: "auto",
+          [`@media (min-height: ${theme.breakpoints.values[breakpoint]}px)`]: {
+            overflow: "auto",
+          },
           [theme.breakpoints.up(breakpoint)]: {
             borderRadius: theme.shape.borderRadius,
             flexGrow: "unset",

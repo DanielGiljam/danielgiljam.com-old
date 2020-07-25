@@ -1,5 +1,6 @@
 import Paper, {PaperProps} from "@material-ui/core/Paper"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
+import clsx from "clsx"
 
 import {breakpoint} from "../theme/constants"
 
@@ -18,9 +19,16 @@ const useStyles = makeStyles((theme) =>
   }),
 )
 
-const Main = (props: PaperProps): JSX.Element => {
+const Main = ({className, ...props}: PaperProps): JSX.Element => {
   const styles = useStyles()
-  return <Paper className={styles.main} component={"main"} square {...props} />
+  return (
+    <Paper
+      className={clsx(className, styles.main)}
+      component={"main"}
+      square
+      {...props}
+    />
+  )
 }
 
 export default Main

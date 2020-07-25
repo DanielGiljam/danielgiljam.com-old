@@ -15,7 +15,6 @@ export const getStaticProps: GetStaticProps<
   ProjectAsProp,
   {project?: string}
 > = async (context) => {
-  console.log(context)
   const slug = context.params?.project ?? ""
   const project = (await getProjects()).find((project) => project.slug === slug)
   if (project == null)
@@ -31,7 +30,7 @@ export const getStaticPaths: GetStaticPaths = async (...args) => ({
 })
 
 const ProjectPage = ({project}: ProjectAsProp): JSX.Element => (
-  <Main grow>
+  <Main>
     <div>{project.name}</div>
   </Main>
 )

@@ -1,13 +1,9 @@
 import Paper, {PaperProps} from "@material-ui/core/Paper"
-import {Theme, createStyles, makeStyles} from "@material-ui/core/styles"
+import {createStyles, makeStyles} from "@material-ui/core/styles"
 
 import {breakpoint} from "../theme/constants"
 
-interface MainProps {
-  grow?: boolean
-}
-
-const useStyles = makeStyles<Theme, MainProps>((theme) =>
+const useStyles = makeStyles((theme) =>
   createStyles({
     main: {
       flexGrow: 1,
@@ -16,14 +12,14 @@ const useStyles = makeStyles<Theme, MainProps>((theme) =>
       },
       [theme.breakpoints.up(breakpoint)]: {
         borderRadius: theme.shape.borderRadius,
-        flexGrow: ({grow}) => (grow === true ? 1 : 0),
+        flexGrow: "unset",
       },
     },
   }),
 )
 
-const Main = ({grow, ...props}: MainProps & PaperProps): JSX.Element => {
-  const styles = useStyles({grow})
+const Main = (props: PaperProps): JSX.Element => {
+  const styles = useStyles()
   return <Paper className={styles.main} component={"main"} square {...props} />
 }
 

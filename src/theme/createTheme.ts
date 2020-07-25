@@ -49,16 +49,6 @@ const createTheme = (): Theme => {
             flexGrow: "unset",
           },
         },
-        main: {
-          flexGrow: 1,
-          [`@media (min-height: ${theme.breakpoints.values[breakpoint]}px)`]: {
-            overflow: "auto",
-          },
-          [theme.breakpoints.up(breakpoint)]: {
-            borderRadius: theme.shape.borderRadius,
-            flexGrow: "unset",
-          },
-        },
       },
     },
   }

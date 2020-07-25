@@ -3,6 +3,7 @@ import path from "path"
 
 import {GetStaticPaths, GetStaticProps} from "next"
 
+import Main from "../components/Main"
 import Project, {ProjectAsProp} from "../types/data/Project"
 
 const getProjects = async (): Promise<Project[]> =>
@@ -30,7 +31,9 @@ export const getStaticPaths: GetStaticPaths = async (...args) => ({
 })
 
 const ProjectPage = ({project}: ProjectAsProp): JSX.Element => (
-  <div>{project.name}</div>
+  <Main grow>
+    <div>{project.name}</div>
+  </Main>
 )
 
 export default ProjectPage

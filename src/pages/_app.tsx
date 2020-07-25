@@ -28,9 +28,7 @@ const App = ({Component, pageProps}: AppProps): JSX.Element => {
         <CssBaseline />
         <Header />
         <div id={"__wrapper"}>
-          <Paper component={"main"} square>
-            <Component {...pageProps} />
-          </Paper>
+          <Component {...pageProps} />
           <Footer />
         </div>
       </ThemeProvider>

@@ -5,6 +5,12 @@ import {defaultSpacing} from "../theme/constants"
 
 const useStyles = makeStyles((theme) =>
   createStyles({
+    container: {
+      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+      alignItems: "center",
+      display: "flex",
+      justifyContent: "center",
+    },
     main: {
       padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
       alignItems: "center",
@@ -24,12 +30,12 @@ const useStyles = makeStyles((theme) =>
 const NotFound = (): JSX.Element => {
   const styles = useStyles()
   return (
-    <>
+    <div className={styles.container}>
       <Typography className={styles.h1} variant={"h1"}>
         404
       </Typography>
       <Typography variant={"body1"}>Not Found.</Typography>
-    </>
+    </div>
   )
 }
 

@@ -2,8 +2,10 @@ import {promises as fs} from "fs"
 import path from "path"
 
 import Typography from "@material-ui/core/Typography"
+import {createStyles, makeStyles} from "@material-ui/core/styles"
 import {GetStaticPaths, GetStaticProps} from "next"
 
+import {defaultSpacing} from "../theme/constants"
 import Project, {ProjectAsProp} from "../types/data/Project"
 
 const getProjects = async (): Promise<Project[]> =>
@@ -29,8 +31,21 @@ export const getStaticPaths: GetStaticPaths = async (...args) => ({
   fallback: false,
 })
 
-const ProjectPage = ({project}: ProjectAsProp): JSX.Element => (
-  <Typography align={"center"}>{project.name}</Typography>
+const useStyles = makeStyles((theme) =>
+  createStyles({
+    container: {
+      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+    },
+  }),
 )
+
+const ProjectPage = ({project}: ProjectAsProp): JSX.Element => {
+  const styles = useStyles()
+  return (
+    <div className={styles.container}>
+      <Typography align={"center"}>{project.name}</Typography>
+    </div>
+  )
+}
 
 export default ProjectPage

@@ -15,7 +15,9 @@ export const getStaticProps: GetStaticProps<ProjectsAsProp> = async () => ({
 })
 
 const Index = ({projects}: ProjectsAsProp): JSX.Element => (
-  <ProjectList projects={projects} />
+  <div>
+    <ProjectList projects={projects} />
+  </div>
 )
 
 export default Index

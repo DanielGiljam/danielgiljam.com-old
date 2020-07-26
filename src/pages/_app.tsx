@@ -1,34 +1,19 @@
 import CssBaseline from "@material-ui/core/CssBaseline"
-import {ThemeProvider, createStyles, makeStyles} from "@material-ui/core/styles"
-import clsx from "clsx"
+import {ThemeProvider} from "@material-ui/core/styles"
 import {AppProps} from "next/app"
 import Head from "next/head"
-import {useEffect} from "react"
+import {useEffect, useRef, useState} from "react"
 
 import Footer from "../components/Footer"
 import Header from "../components/Header"
 import Main from "../components/Main"
-import {defaultSpacing} from "../theme/constants"
 import createTheme from "../theme/createTheme"
 
 import "../theme/font-faces.css"
 
-const useStyles = makeStyles((theme) =>
-  createStyles({
-    project: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
-    },
-    notFound: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
-      alignItems: "center",
-      display: "flex",
-      justifyContent: "center",
-    },
-  }),
-)
-
 const App = ({Component, pageProps, router}: AppProps): JSX.Element => {
-  const styles = useStyles()
+  const [mainHeight, setMainHeight] = useState<number | undefined>()
+  const mainRef = useRef<HTMLElement>(null)
   useEffect(() => {
     // Remove the server-side injected CSS.
     const jssStyles = document.querySelector("#jss-server-side")
@@ -36,6 +21,9 @@ const App = ({Component, pageProps, router}: AppProps): JSX.Element => {
       jssStyles.parentElement?.removeChild(jssStyles)
     }
   }, [])
+  useEffect(() => {
+    setMainHeight((mainRef.current?.firstChild as HTMLElement).offsetHeight)
+  }, [router.pathname])
   return (
     <>
       <Head>
@@ -45,12 +33,7 @@ const App = ({Component, pageProps, router}: AppProps): JSX.Element => {
         <CssBaseline />
         <Header />
         <div id={"__wrapper"}>
-          <Main
-            className={clsx({
-              [styles.project]:
-                router.pathname !== "/" && router.pathname !== "/404",
-              [styles.notFound]: router.pathname === "/404",
-            })}>
+          <Main ref={mainRef} style={{height: mainHeight}}>
             <Component {...pageProps} />
           </Main>
           <Footer />

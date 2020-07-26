@@ -9,33 +9,20 @@ import {defaultSpacing} from "../theme/constants"
 const useStyles = makeStyles((theme) =>
   createStyles({
     link: {
-      "&:hover": {
-        "& > span > svg": {
-          filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 32))",
-          transition: theme.transitions.create(["filter", "transform"]),
-          transform: "scale(1.03125)",
+      display: "block",
+      "& > span": {
+        display: "block",
+        "& > svg": {
+          margin: defaultSpacing(theme),
+          fill: theme.palette.text.primary,
         },
-      },
-      "& > span > svg": {
-        fill: theme.palette.text.primary,
-        margin: defaultSpacing(theme),
       },
     },
     linkFocusVisible: {
-      outline: "unset",
       "& > span > svg": {
-        animation: "$linkFocusVisibleAnimation 1s linear infinite alternate",
+        backgroundColor: theme.palette.action.selected,
       },
-    },
-    "@keyframes linkFocusVisibleAnimation": {
-      from: {
-        filter: "drop-shadow(0 0 1px rgba(0, 0, 0, 16))",
-        transform: "scale(1.0078125)",
-      },
-      to: {
-        filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 32))",
-        transform: "scale(1.03125)",
-      },
+      outline: "unset",
     },
   }),
 )

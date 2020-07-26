@@ -1,7 +1,7 @@
 import {promises as fs} from "fs"
 import path from "path"
 
-import {Typography} from "@material-ui/core"
+import Typography from "@material-ui/core/Typography"
 import {GetStaticPaths, GetStaticProps} from "next"
 
 import Project, {ProjectAsProp} from "../types/data/Project"

@@ -39,6 +39,7 @@
     "eslint-plugin-react": "^7.20.3",
     "eslint-plugin-standard": "^4.0.1",
     "fontsource-roboto": "^2.2.6",
+    "husky": "^4.2.5",
     "next": "^9.4.4",
     "prettier": "^2.0.5",
     "react": "^16.13.1",
@@ -46,5 +47,10 @@
     "rimraf": "^3.0.2",
     "svg-inline-loader": "^0.8.2",
     "typescript": "^3.9.7"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run tsc && npm run lint && npm run prettier"
+    }
   }
 }

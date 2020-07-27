@@ -9,7 +9,7 @@ import {ProjectsAsProp} from "../types/data/Project"
 export const getStaticProps: GetStaticProps<ProjectsAsProp> = async () => ({
   props: {
     projects: JSON.parse(
-      await fs.readFile(path.resolve("test/mock-data/projects.json"), "utf-8"),
+      await fs.readFile(path.resolve("env/mock-data/projects.json"), "utf-8"),
     ).projects,
   },
 })

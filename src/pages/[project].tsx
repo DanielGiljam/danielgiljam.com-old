@@ -10,7 +10,7 @@ import Project, {ProjectAsProp} from "../types/data/Project"
 
 const getProjects = async (): Promise<Project[]> =>
   JSON.parse(
-    await fs.readFile(path.resolve("test/mock-data/projects.json"), "utf-8"),
+    await fs.readFile(path.resolve("env/mock-data/projects.json"), "utf-8"),
   ).projects
 
 export const getStaticProps: GetStaticProps<

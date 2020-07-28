@@ -3,8 +3,8 @@ import path from "path"
 
 import {GetStaticProps} from "next"
 
+import {OldProjectsAsProp as ProjectsAsProp} from "../../types/data/Project"
 import ProjectList from "../components/ProjectList"
-import {ProjectsAsProp} from "../types/data/Project"
 
 export const getStaticProps: GetStaticProps<ProjectsAsProp> = async () => ({
   props: {

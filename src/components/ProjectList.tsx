@@ -3,7 +3,10 @@ import ListItem from "@material-ui/core/ListItem"
 import ListItemText from "@material-ui/core/ListItemText"
 import Link from "next/link"
 
-import {ProjectAsProp, ProjectsAsProp} from "../types/data/Project"
+import {
+  OldProjectAsProp as ProjectAsProp,
+  OldProjectsAsProp as ProjectsAsProp,
+} from "../../types/data/Project"
 
 const Item = ({project}: ProjectAsProp): JSX.Element => (
   <li>

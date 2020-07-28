@@ -5,8 +5,8 @@ import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import {GetStaticPaths, GetStaticProps} from "next"
 
+import {OldProject as Project, OldProjectAsProp as ProjectAsProp} from "../../types/data/Project"
 import {defaultSpacing} from "../theme/constants"
-import Project, {ProjectAsProp} from "../types/data/Project"
 
 const getProjects = async (): Promise<Project[]> =>
   JSON.parse(

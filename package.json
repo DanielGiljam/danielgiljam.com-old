@@ -20,6 +20,11 @@
     "format": "prettier --write .",
     "tff": "npm run tsc && npm run fix && npm run format"
   },
+  "dependencies": {
+    "firebase-admin": "^9.0.0",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  },
   "devDependencies": {
     "@danielgiljam/eslint-config": "^2.0.1",
     "@danielgiljam/prettierrc": "^2.0.1",
@@ -45,8 +50,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "rimraf": "^3.0.2",
-    "svg-inline-loader": "^0.8.2",
-    "typescript": "^3.9.7"
+    "svg-inline-loader": "^0.8.2"
   },
   "husky": {
     "hooks": {

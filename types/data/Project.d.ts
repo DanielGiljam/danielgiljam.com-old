@@ -1,3 +1,5 @@
+import {firestore} from "firebase-admin"
+
 declare namespace Project {
   export namespace Instruction {
     /** More sources may be added in the future. */
@@ -27,6 +29,10 @@ declare namespace Project {
     pageContents?: PageContents | "_github" | "_npm"
     downloads?: Download[]
     _sources?: Instruction.Sources
+  }
+
+  export namespace Firestore {
+    export type ServerClientLibrary = Omit<Full<firestore.Timestamp>, "id">
   }
 
   export namespace MetaData {

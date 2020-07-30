@@ -20,10 +20,9 @@ declare namespace Project {
    * This applies only to fields that can have another source than "self".
    */
   export interface Instruction {
-    readonly id: Id
-    name: Name | "_github" | "_npm"
-    description: Description | "_github" | "_npm"
-    lifespan: Lifespan<string> | "_github"
+    name?: Name | "_github" | "_npm"
+    description?: Description | "_github" | "_npm"
+    lifespan?: Lifespan<string> | "_github"
     latestRelease?: Release<string> | "_github" | "_npm"
     links?: Link[]
     pageContents?: PageContents | "_github" | "_npm"
@@ -32,13 +31,13 @@ declare namespace Project {
   }
 
   export namespace Firestore {
-    export type ServerClientLibrary = Omit<Full<firestore.Timestamp>, "id">
+    export type ServerClientLibrary = Omit<Full<firestore.FieldValue>, "id">
   }
 
   export namespace MetaData {
     /** More sources may be added in the future. */
     export interface Sources<D = Date> {
-      self: {
+      readonly self: {
         /** When this changes, `._modifiedAt` must change too to the same value as this. */
         modifiedAt: D
       }

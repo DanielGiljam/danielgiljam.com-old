@@ -6,9 +6,43 @@ interface PopulationInstructions {
   [key: string]: Project.Instruction
 }
 
-interface GitHubResponse {}
+interface GitHubResponse {
+  description?: string
+  defaultBranchRef?: {
+    target: {
+      authoredDate: string
+      history: {
+        nodes: Array<{
+          authoredDate: string
+        }>
+        pageInfo: {
+          endCursor: string
+          hasNextPage: boolean
+        }
+      }
+    }
+  }
+  releases: {
+    nodes: Array<{
+      name: string
+      tagName: string
+      publishedAt: string
+      isPrerelease: boolean
+    }>
+  }
+  readme?: string
+}
 
-interface NPMResponse {}
+interface NPMResponse {
+  name: string
+  time: {
+    created: string
+    modified: string
+    [key: string]: string
+  }
+  description?: string
+  readme?: string
+}
 
 type GitHubParseable =
   | "name"

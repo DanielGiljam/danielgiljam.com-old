@@ -1,0 +1,31 @@
+query {
+  repository(owner: "%s", name: "%s") {
+    name
+    description
+    createdAt
+    defaultBranchRef {
+      target {
+        ... on Commit {
+          authoredDate
+          history {
+            nodes {
+              authoredDate
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+    releases(last: 1) {
+      nodes {
+        name
+        tagName
+        publishedAt
+        isPrerelease
+      }
+    }
+  }
+}

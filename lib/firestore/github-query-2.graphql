@@ -1,0 +1,19 @@
+query {
+  repository(owner: "%s", name: "%s") {
+    defaultBranchRef {
+      target {
+        ... on Commit {
+          history(before: "%s") {
+            nodes {
+              authoredDate
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+  }
+}

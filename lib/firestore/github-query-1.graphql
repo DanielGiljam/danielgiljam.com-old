@@ -21,7 +21,6 @@ query GitHubQuery1($owner: String!, $name: String!) {
     }
     releases(last: 1) {
       nodes {
-        name
         tagName
         publishedAt
         isPrerelease

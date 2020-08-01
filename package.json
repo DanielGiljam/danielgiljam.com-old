@@ -23,6 +23,7 @@
   "dependencies": {
     "firebase-admin": "^9.0.0",
     "isomorphic-unfetch": "^3.0.0",
+    "moment": "^2.27.0",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.7"
   },

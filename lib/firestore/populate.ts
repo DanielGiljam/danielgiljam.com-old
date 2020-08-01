@@ -3,6 +3,7 @@ import path from "path"
 
 import {firestore} from "firebase-admin"
 import fetch from "isomorphic-unfetch"
+import moment from "moment"
 
 import Project from "../../types/data/Project"
 
@@ -14,7 +15,7 @@ interface GitHubResponse {
   description?: string
   defaultBranchRef?: {
     target: {
-      authoredDate: string
+      authoredDate?: string
       history: {
         nodes: Array<{
           authoredDate: string
@@ -57,6 +58,7 @@ type GitHubParseable =
 
 type GitHubParsers = {
   [K in GitHubParseable]: (
+    id: string,
     github: GitHubResponse,
   ) => Project.Firestore.ServerClientLibrary[K]
 }
@@ -65,6 +67,7 @@ type NPMParseable = "name" | "description" | "latestRelease" | "pageContents"
 
 type NPMParsers = {
   [K in NPMParseable]: (
+    id: string,
     npm: NPMResponse,
   ) => Project.Firestore.ServerClientLibrary[K]
 }
@@ -106,22 +109,33 @@ const githubFetch2Endpoint = (
   `https://raw.githubusercontent.com/${owner}/${name}/master/README.md`,
 ]
 
-const fetchGitHub = async ({
-  owner,
-  name,
-}: NonNullable<Project.Instruction.Sources["github"]>): Promise<
-  GitHubResponse
-> => {
-  const githubResponse: GitHubResponse = (
-    await fetch(...githubFetch1Endpoint(owner, name)).then(
-      async (res) => await res.json(),
-    )
-  ).data.repository
+const fetchGitHub = async (
+  id: string,
+  {
+    owner,
+    name,
+    countLifespanAsStillOngoing,
+  }: NonNullable<Project.Instruction.Sources["github"]>,
+): Promise<GitHubResponse> => {
+  const githubResponse: GitHubResponse = await fetch(
+    ...githubFetch1Endpoint(owner, name),
+  ).then(async (res) => {
+    const json = await res.json()
+    if (json?.data?.repository == null) {
+      throw new Error(
+        `[${id}._source.github] Failed to decode response from GitHub.`,
+      )
+    }
+    return json.data.repository
+  })
   const readme = await fetch(...githubFetch2Endpoint(owner, name)).then(
     async (res) => await res.text(),
   )
   githubResponse.readme = readme
   if (githubResponse.defaultBranchRef != null) {
+    if (countLifespanAsStillOngoing ?? false) {
+      githubResponse.defaultBranchRef.target.authoredDate = undefined
+    }
     let hasNextPage =
       githubResponse.defaultBranchRef.target.history.pageInfo.hasNextPage
     if (hasNextPage) {
@@ -148,10 +162,19 @@ const npmFetch1Endpoint = (name: string): Parameters<typeof fetch> => [
   `https://registry.npmjs.com/${name}`,
 ]
 
-const fetchNPM = async ({
-  name,
-}: NonNullable<Project.Instruction.Sources["npm"]>): Promise<NPMResponse> =>
-  await fetch(...npmFetch1Endpoint(name)).then(async (res) => await res.json())
+const fetchNPM = async (
+  id: string,
+  {name}: NonNullable<Project.Instruction.Sources["npm"]>,
+): Promise<NPMResponse> =>
+  await fetch(...npmFetch1Endpoint(name)).then(async (res) => {
+    const json = await res.json()
+    if (json == null) {
+      throw new Error(
+        `[${id}._sources.npm] Unable to decode response from NPM.`,
+      )
+    }
+    return json
+  })
 
 const githubParseableRegex = /^name|description|lifespan|latestRelease|pageContents$/
 
@@ -164,24 +187,112 @@ const npmParseableRegex = /^name|description|latestRelease|pageContents$/
 const isNPMParseable = (fieldName: FieldName): fieldName is NPMParseable =>
   npmParseableRegex.test(fieldName)
 
+const throwFailedAcquisition = (
+  id: string,
+  fieldName: string,
+  source: string,
+): never => {
+  throw new Error(`[${id}] Failed to acquire "${fieldName}" from ${source}.`)
+}
+
+const githubNameRegex = /(?<=^# ).*/
+const githubLatestReleaseVersionRegex = /(?<=v?)\d\.\d\.\d/
+const githubPageContentsHeading1Matcher = /^# .*\n*/
+
 const githubParsers: GitHubParsers = {
-  name() {},
-  description() {},
-  lifespan() {},
-  latestRelease() {},
-  pageContents() {},
+  name(id, {readme}) {
+    if (readme != null) {
+      const execResult = githubNameRegex.exec(readme)
+      if (execResult != null) {
+        return execResult[0]
+      }
+    }
+    return throwFailedAcquisition(id, "name", "GitHub")
+  },
+  description(id, {description}) {
+    if (description != null) {
+      return description
+    }
+    return throwFailedAcquisition(id, "description", "GitHub")
+  },
+  lifespan(id, {defaultBranchRef}) {
+    if (defaultBranchRef != null) {
+      const historyNodes = defaultBranchRef.target.history.nodes
+      const begun = firestore.Timestamp.fromDate(
+        moment
+          .utc(
+            historyNodes[historyNodes.length - 1].authoredDate,
+            moment.ISO_8601,
+          )
+          .toDate(),
+      )
+      const ended =
+        defaultBranchRef.target.authoredDate != null
+          ? firestore.Timestamp.fromDate(
+              moment
+                .utc(defaultBranchRef.target.authoredDate, moment.ISO_8601)
+                .toDate(),
+            )
+          : undefined
+      return {begun, ended}
+    }
+    return throwFailedAcquisition(id, "lifespan", "GitHub")
+  },
+  latestRelease(id, {releases}) {
+    const {tagName, publishedAt, isPrerelease} = releases.nodes[0]
+    const execResult = githubLatestReleaseVersionRegex.exec(tagName)
+    if (execResult != null) {
+      return {
+        version: execResult[0],
+        timestamp: firestore.Timestamp.fromDate(
+          moment(publishedAt, moment.ISO_8601).toDate(),
+        ),
+        isPrerelease: isPrerelease,
+      }
+    }
+    return throwFailedAcquisition(id, "latestRelease", "GitHub")
+  },
+  pageContents(id, {readme}) {
+    if (readme != null) {
+      const readmeWithoutHeading1 = readme.replace(
+        githubPageContentsHeading1Matcher,
+        "",
+      )
+      if (readmeWithoutHeading1.length !== 0) {
+        return readmeWithoutHeading1
+      }
+    }
+    return throwFailedAcquisition(id, "pageContents", "GitHub")
+  },
 }
 
 const npmParsers: NPMParsers = {
-  name() {},
-  description() {},
-  latestRelease() {},
-  pageContents() {},
+  name(id, npmResponse) {
+    return throwFailedAcquisition(id, "name", "NPM")
+  },
+  description(id, npmResponse) {
+    return throwFailedAcquisition(id, "description", "NPM")
+  },
+  latestRelease(id, npmResponse) {
+    return throwFailedAcquisition(id, "latestRelease", "NPM")
+  },
+  pageContents(id, npmResponse) {
+    return throwFailedAcquisition(id, "pageContents", "NPM")
+  },
 }
 
-const conclude = async <FN extends FieldName>(
-  fieldName: FN,
+const throwUnsupportedSourceDirective = (
+  path: string,
+  sourceDirective: string,
+): void => {
+  throw new Error(
+    `[${path}] Unsupported source directive: "${sourceDirective}". This source directive cannot be used for this field.`,
+  )
+}
+
+const resolve = async <FN extends FieldName>(
   id: string,
+  fieldName: FN,
   instruction: Project.Instruction,
   _sourceMap: Project.MetaData.SourceMap,
   github?: GitHubResponse,
@@ -202,13 +313,15 @@ const conclude = async <FN extends FieldName>(
       if (isGitHubParseable(fieldName)) {
         try {
           return githubParsers[fieldName](
+            id,
             github as GitHubResponse,
           ) as Project.Firestore.ServerClientLibrary[FN]
         } catch (error) {
           if (isNPMParseable(fieldName) && npm != null) {
             console.warn(error.message)
-            console.warn("Falling back to NPM...")
+            console.warn(`[${id}.${fieldName}] Falling back to NPM...`)
             return npmParsers[fieldName](
+              id,
               npm,
             ) as Project.Firestore.ServerClientLibrary[FN]
           } else {
@@ -216,22 +329,22 @@ const conclude = async <FN extends FieldName>(
           }
         }
       } else {
-        throw new Error(
-          `You cannot set the source of "${fieldName}" to GitHub. (In "${id}".)`,
-        )
+        throwUnsupportedSourceDirective(`${id}.${fieldName}`, "_github")
       }
     }
     if (fieldValue === "_npm") {
       if (isNPMParseable(fieldName)) {
         try {
           return npmParsers[fieldName](
+            id,
             npm as NPMResponse,
           ) as Project.Firestore.ServerClientLibrary[FN]
         } catch (error) {
           if (isGitHubParseable(fieldName) && github != null) {
             console.warn(error.message)
-            console.warn("Falling back to GitHub...")
+            console.warn(`[${id}.${fieldName}] Falling back to GitHub...`)
             return githubParsers[fieldName](
+              id,
               github,
             ) as Project.Firestore.ServerClientLibrary[FN]
           } else {
@@ -239,9 +352,7 @@ const conclude = async <FN extends FieldName>(
           }
         }
       } else {
-        throw new Error(
-          `You cannot set the source of "${fieldName}" to NPM. (In "${id}".)`,
-        )
+        throwUnsupportedSourceDirective(`${id}.${fieldName}`, "_npm")
       }
     }
     // The point of the previous blocks were to conclude
@@ -251,6 +362,7 @@ const conclude = async <FN extends FieldName>(
     if (isGitHubParseable(fieldName) && github != null) {
       try {
         return githubParsers[fieldName](
+          id,
           github,
         ) as Project.Firestore.ServerClientLibrary[FN]
       } catch (error) {
@@ -260,6 +372,7 @@ const conclude = async <FN extends FieldName>(
     if (isNPMParseable(fieldName) && npm != null) {
       try {
         return npmParsers[fieldName](
+          id,
           npm,
         ) as Project.Firestore.ServerClientLibrary[FN]
       } catch (error) {
@@ -271,11 +384,11 @@ const conclude = async <FN extends FieldName>(
       case "description":
       case "lifespan":
         throw new Error(
-          `Unable to acquire required field "${fieldName}" of "${id}" from any source.`,
+          `[${id}.${fieldName}] Unable to resolve non-nullable field.`,
         )
       default:
         console.warn(
-          `Unable to acquire "${fieldName}" of "${id}" from any source. The field will be undefined.`,
+          `[${id}.${fieldName}] Unable to resolve field. The value of this field will be undefined`,
         )
         return undefined as Project.Firestore.ServerClientLibrary[FN]
     }
@@ -293,50 +406,50 @@ const assemble = async (
   }
   const github =
     instruction._sources?.github != null
-      ? await fetchGitHub(instruction._sources.github)
+      ? await fetchGitHub(id, instruction._sources.github)
       : undefined
   const npm =
     instruction._sources?.npm != null
-      ? await fetchNPM(instruction._sources.npm)
+      ? await fetchNPM(id, instruction._sources.npm)
       : undefined
   return {
-    name: await conclude("name", id, instruction, _sourceMap, github, npm),
-    description: await conclude(
+    name: await resolve(id, "name", instruction, _sourceMap, github, npm),
+    description: await resolve(
+      id,
       "description",
-      id,
       instruction,
       _sourceMap,
       github,
       npm,
     ),
-    lifespan: await conclude(
+    lifespan: await resolve(
+      id,
       "lifespan",
-      id,
       instruction,
       _sourceMap,
       github,
       npm,
     ),
-    latestRelease: await conclude(
+    latestRelease: await resolve(
+      id,
       "latestRelease",
-      id,
       instruction,
       _sourceMap,
       github,
       npm,
     ),
-    links: await conclude("links", id, instruction, _sourceMap, github, npm),
-    pageContents: await conclude(
+    links: await resolve(id, "links", instruction, _sourceMap, github, npm),
+    pageContents: await resolve(
+      id,
       "pageContents",
-      id,
       instruction,
       _sourceMap,
       github,
       npm,
     ),
-    downloads: await conclude(
-      "downloads",
+    downloads: await resolve(
       id,
+      "downloads",
       instruction,
       _sourceMap,
       github,
@@ -367,6 +480,26 @@ const assemble = async (
   }
 }
 
+const throwUnresolvableNonNullableFields = (
+  id: string,
+  ...fields: string[]
+): void => {
+  throw new Error(
+    `[${id}] Non-nullable fields ${fields
+      .map((field) => `"${field}"`)
+      .join(", ")} lack means to be resolved.`,
+  )
+}
+
+const throwMissingSourceConfiguration = (
+  id: string,
+  sourceConfigName: string,
+): void => {
+  throw new Error(
+    `[${id}] Missing source configuration: "${sourceConfigName}". Source directives suggest a source configuration should be present.`,
+  )
+}
+
 const validate = async (
   id: string,
   instruction: Project.Instruction,
@@ -378,30 +511,27 @@ const validate = async (
         instruction.description == null &&
         instruction.lifespan == null
       ) {
-        throw new Error(
-          `"${id}" needs to have either sources or the fields "name", "description" and "lifespan" specified.`,
+        throwUnresolvableNonNullableFields(
+          id,
+          "name",
+          "description",
+          "lifespan",
         )
       }
     } else {
       if (instruction.lifespan == null) {
-        throw new Error(
-          `"${id}" needs to have "lifespan" specified or a source from which "lifespan" can be acquired.`,
-        )
+        throwUnresolvableNonNullableFields(id, "lifespan")
       }
     }
     if (Object.values(instruction).includes("_github")) {
-      throw new Error(
-        `A field in "${id}" uses GitHub as a source but GitHub isn't specified in "_sources".`,
-      )
+      throwMissingSourceConfiguration(id, "github")
     }
   }
   if (
     Object.values(instruction).includes("_npm") &&
     instruction._sources?.npm == null
   ) {
-    throw new Error(
-      `A field in "${id}" uses NPM as a source but NPM isn't specified in "_sources".`,
-    )
+    throwMissingSourceConfiguration(id, "npm")
   }
   return instruction
 }

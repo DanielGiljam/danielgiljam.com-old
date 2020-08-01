@@ -114,6 +114,7 @@ declare namespace Project {
   export interface Release<D = Date> {
     version: string
     timestamp: D
+    isPrerelease?: boolean
   }
   export interface Link {
     /** More link types may be added in the future. */

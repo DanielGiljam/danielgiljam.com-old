@@ -1,5 +1,5 @@
-query {
-  repository(owner: "%s", name: "%s") {
+query GitHubQuery1($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
     name
     description
     createdAt

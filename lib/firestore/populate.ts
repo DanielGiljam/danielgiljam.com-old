@@ -1,4 +1,8 @@
+import {promises as fs} from "fs"
+import path from "path"
+
 import {firestore} from "firebase-admin"
+import fetch from "isomorphic-unfetch"
 
 import Project from "../../types/data/Project"
 
@@ -74,13 +78,75 @@ type FieldName =
   | "pageContents"
   | "downloads"
 
-const fetchGitHub = async (
-  info: Project.Instruction.Sources["github"],
-): Promise<GitHubResponse> => {}
+let graphqlQuery1: string
+let graphqlQuery2: string
 
-const fetchNPM = async (
-  info: Project.Instruction.Sources["npm"],
-): Promise<NPMResponse> => {}
+const fetch1Endpoint = (
+  owner: string,
+  name: string,
+  cursor?: string,
+): Parameters<typeof fetch> => [
+  "https://api.github.com/graphql",
+  {
+    method: "post",
+    body: JSON.stringify({
+      query: cursor == null ? graphqlQuery1 : graphqlQuery2,
+      variables: {
+        owner,
+        name,
+        cursor,
+      },
+    }),
+  },
+]
+const fetch2Endpoint = (
+  owner: string,
+  name: string,
+): Parameters<typeof fetch> => [
+  `https://raw.githubusercontent.com/${owner}/${name}/master/README.md`,
+]
+
+const fetchGitHub = async ({
+  owner,
+  name,
+}: NonNullable<Project.Instruction.Sources["github"]>): Promise<
+  GitHubResponse
+> => {
+  const githubResponse: GitHubResponse = (
+    await fetch(...fetch1Endpoint(owner, name)).then(
+      async (res) => await res.json(),
+    )
+  ).data.repository
+  const readme = await fetch(...fetch2Endpoint(owner, name)).then(
+    async (res) => await res.text(),
+  )
+  githubResponse.readme = readme
+  if (githubResponse.defaultBranchRef != null) {
+    let hasNextPage =
+      githubResponse.defaultBranchRef.target.history.pageInfo.hasNextPage
+    if (hasNextPage) {
+      let cursor =
+        githubResponse.defaultBranchRef.target.history.pageInfo.endCursor
+      let defaultBranchRef: NonNullable<GitHubResponse["defaultBranchRef"]>
+      do {
+        defaultBranchRef = (
+          await fetch(...fetch1Endpoint(owner, name, cursor)).then(
+            async (res) => await res.json(),
+          )
+        ).data.repository.defaultBranchRef
+        hasNextPage = defaultBranchRef.target.history.pageInfo.hasNextPage
+        cursor = defaultBranchRef.target.history.pageInfo.endCursor
+      } while (hasNextPage)
+      githubResponse.defaultBranchRef.target.history =
+        defaultBranchRef.target.history
+    }
+  }
+  return githubResponse
+}
+
+const fetchNPM = async ({
+  package,
+}: NonNullable<Project.Instruction.Sources["npm"]>): Promise<NPMResponse> => {}
 
 const githubParseableRegex = /^name|description|lifespan|latestRelease|pageContents$/
 
@@ -344,6 +410,14 @@ const populate = async (
   db: firestore.Firestore,
   instructions: PopulationInstructions,
 ): Promise<void> => {
+  graphqlQuery1 = await fs.readFile(
+    path.resolve(__dirname, "./github-query-1.min.graphql"),
+    "utf-8",
+  )
+  graphqlQuery2 = await fs.readFile(
+    path.resolve(__dirname, "./github-query-1.min.graphql"),
+    "utf-8",
+  )
   const batch = db.batch()
   const collRef = db.collection("projects")
   await Promise.allSettled(

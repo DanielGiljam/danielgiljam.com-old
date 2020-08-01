@@ -1,9 +1,9 @@
-query {
-  repository(owner: "%s", name: "%s") {
+query GitHubQuery2($owner: String!, $name: String!, $cursor: String!) {
+  repository(owner: $owner, name: $name) {
     defaultBranchRef {
       target {
         ... on Commit {
-          history(before: "%s") {
+          history(before: $cursor) {
             nodes {
               authoredDate
             }

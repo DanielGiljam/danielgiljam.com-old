@@ -11,6 +11,11 @@ interface PopulationInstructions {
   [key: string]: Project.Instruction
 }
 
+interface PopulateOptions {
+  testMode?: boolean
+  writeDump?: boolean
+}
+
 interface GitHubResponse {
   description?: string
   defaultBranchRef?: {
@@ -40,6 +45,9 @@ interface GitHubResponse {
 
 interface NPMResponse {
   name: string
+  "dist-tags": {
+    latest?: string
+  }
   time: {
     created: string
     modified: string
@@ -195,14 +203,17 @@ const throwFailedAcquisition = (
   throw new Error(`[${id}] Failed to acquire "${fieldName}" from ${source}.`)
 }
 
-const githubNameRegex = /(?<=^# ).*/
-const githubLatestReleaseVersionRegex = /(?<=v?)\d\.\d\.\d/
-const githubPageContentsHeading1Matcher = /^# .*\n*/
+const nameRegex = /(?<=^# ).*/
+const latestReleaseVersionRegex = /(?<=v?)\d\.\d\.\d/
+const pageContentsHeading1Matcher = /^# .*\n*/
+
+const utcISO8601StringToFirestore = (dateString: string): firestore.Timestamp =>
+  firestore.Timestamp.fromDate(moment.utc(dateString, moment.ISO_8601).toDate())
 
 const githubParsers: GitHubParsers = {
   name(id, {readme}) {
     if (readme != null) {
-      const execResult = githubNameRegex.exec(readme)
+      const execResult = nameRegex.exec(readme)
       if (execResult != null) {
         return execResult[0]
       }
@@ -218,21 +229,12 @@ const githubParsers: GitHubParsers = {
   lifespan(id, {defaultBranchRef}) {
     if (defaultBranchRef != null) {
       const historyNodes = defaultBranchRef.target.history.nodes
-      const begun = firestore.Timestamp.fromDate(
-        moment
-          .utc(
-            historyNodes[historyNodes.length - 1].authoredDate,
-            moment.ISO_8601,
-          )
-          .toDate(),
+      const begun = utcISO8601StringToFirestore(
+        historyNodes[historyNodes.length - 1].authoredDate,
       )
       const ended =
         defaultBranchRef.target.authoredDate != null
-          ? firestore.Timestamp.fromDate(
-              moment
-                .utc(defaultBranchRef.target.authoredDate, moment.ISO_8601)
-                .toDate(),
-            )
+          ? utcISO8601StringToFirestore(defaultBranchRef.target.authoredDate)
           : undefined
       return {begun, ended}
     }
@@ -240,14 +242,12 @@ const githubParsers: GitHubParsers = {
   },
   latestRelease(id, {releases}) {
     const {tagName, publishedAt, isPrerelease} = releases.nodes[0]
-    const execResult = githubLatestReleaseVersionRegex.exec(tagName)
+    const execResult = latestReleaseVersionRegex.exec(tagName)
     if (execResult != null) {
       return {
         version: execResult[0],
-        timestamp: firestore.Timestamp.fromDate(
-          moment(publishedAt, moment.ISO_8601).toDate(),
-        ),
-        isPrerelease: isPrerelease,
+        timestamp: utcISO8601StringToFirestore(publishedAt),
+        isPrerelease,
       }
     }
     return throwFailedAcquisition(id, "latestRelease", "GitHub")
@@ -255,7 +255,7 @@ const githubParsers: GitHubParsers = {
   pageContents(id, {readme}) {
     if (readme != null) {
       const readmeWithoutHeading1 = readme.replace(
-        githubPageContentsHeading1Matcher,
+        pageContentsHeading1Matcher,
         "",
       )
       if (readmeWithoutHeading1.length !== 0) {
@@ -267,16 +267,47 @@ const githubParsers: GitHubParsers = {
 }
 
 const npmParsers: NPMParsers = {
-  name(id, npmResponse) {
+  name(id, {readme}) {
+    if (readme != null) {
+      const execResult = nameRegex.exec(readme)
+      if (execResult != null) {
+        return execResult[0]
+      }
+    }
     return throwFailedAcquisition(id, "name", "NPM")
   },
-  description(id, npmResponse) {
+  description(id, {description}) {
+    if (description != null && description.length !== 0) {
+      return description
+    }
     return throwFailedAcquisition(id, "description", "NPM")
   },
   latestRelease(id, npmResponse) {
+    const versionRaw = npmResponse["dist-tags"].latest
+    if (versionRaw != null) {
+      const timestamp = utcISO8601StringToFirestore(
+        npmResponse.time[versionRaw],
+      )
+      const execResult = latestReleaseVersionRegex.exec(versionRaw)
+      if (execResult != null) {
+        return {
+          version: execResult[0],
+          timestamp,
+        }
+      }
+    }
     return throwFailedAcquisition(id, "latestRelease", "NPM")
   },
-  pageContents(id, npmResponse) {
+  pageContents(id, {readme}) {
+    if (readme != null) {
+      const readmeWithoutHeading1 = readme.replace(
+        pageContentsHeading1Matcher,
+        "",
+      )
+      if (readmeWithoutHeading1.length !== 0) {
+        return readmeWithoutHeading1
+      }
+    }
     return throwFailedAcquisition(id, "pageContents", "NPM")
   },
 }
@@ -299,13 +330,13 @@ const resolve = async <FN extends FieldName>(
   npm?: NPMResponse,
 ): Promise<Project.Firestore.ServerClientLibrary[FN]> => {
   /**
-   * On the explicit type assertions / type system overrides in this function:
+   * On the type assertions / type system overrides in this function:
    *
    * - The existence of `github` and `npm` was checked earlier (in the `validate` function)
    *   in the cases where they are asserted to not be null.
-   * - Thanks to the mapped types of the `githubParsers` and `npmParsers` objects
-   *   we can safely assert that the expressions in the return statements will in fact return
-   *   the correct type. (Or throw errors, hence the try/catch blocks)
+   * - Thanks to the mapped types of `githubParsers` and `npmParsers` we know that
+   *   the expressions in the return statements always will return the correct types.
+   *   (Or throw errors, hence the try/catch blocks.)
    */
   const fieldValue = instruction[fieldName]
   if (fieldValue != null) {
@@ -540,10 +571,12 @@ const validate = async (
  * This function populates Firestore with projects (documents describing projects).
  * @param db Authenticated, initialized Firestore instance.
  * @param instructions Instructions that tell how to populate.
+ * @param options Options for toggling test mode and whether to write a dump.
  */
 const populate = async (
   db: firestore.Firestore,
   instructions: PopulationInstructions,
+  options: PopulateOptions = {},
 ): Promise<void> => {
   graphqlQuery1 = await fs.readFile(
     path.resolve(__dirname, "./github-query-1.min.graphql"),
@@ -553,6 +586,7 @@ const populate = async (
     path.resolve(__dirname, "./github-query-1.min.graphql"),
     "utf-8",
   )
+  const dump: {[key: string]: Project.Firestore.ServerClientLibrary} = {}
   const batch = db.batch()
   const collRef = db.collection("projects")
   await Promise.allSettled(
@@ -571,7 +605,7 @@ const populate = async (
       if (result.status === "fulfilled") {
         const {id, ...assembledProject} = result.value
         console.info(`Assembled "${id}".`)
-        console.log(JSON.stringify(assembledProject, undefined, 2))
+        dump[id] = assembledProject
       } else {
         console.error(result.reason)
         abort = true
@@ -581,6 +615,13 @@ const populate = async (
       throw new Error("Some projects failed to assemble. Batch aborted.")
     }
   })
+  if (options.writeDump ?? false) {
+    await fs.writeFile(
+      path.resolve(process.cwd(), "./populate-dump.json"),
+      JSON.stringify(dump, undefined, 2),
+    )
+  }
+  if (options.testMode ?? false) return
   await batch.commit()
 }
 

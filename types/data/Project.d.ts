@@ -10,7 +10,7 @@ declare namespace Project {
         countLifespanAsStillOngoing?: boolean
       }
       npm?: {
-        package: string
+        name: string
       }
     }
   }
@@ -49,7 +49,7 @@ declare namespace Project {
         refreshedAt: D
       }
       npm?: {
-        package: string
+        name: string
         /** When this changes, `._modifiedAt` must change too to the same value as this. */
         refreshedAt: D
       }

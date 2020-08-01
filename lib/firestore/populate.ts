@@ -81,7 +81,7 @@ type FieldName =
 let graphqlQuery1: string
 let graphqlQuery2: string
 
-const fetch1Endpoint = (
+const githubFetch1Endpoint = (
   owner: string,
   name: string,
   cursor?: string,
@@ -99,7 +99,7 @@ const fetch1Endpoint = (
     }),
   },
 ]
-const fetch2Endpoint = (
+const githubFetch2Endpoint = (
   owner: string,
   name: string,
 ): Parameters<typeof fetch> => [
@@ -113,11 +113,11 @@ const fetchGitHub = async ({
   GitHubResponse
 > => {
   const githubResponse: GitHubResponse = (
-    await fetch(...fetch1Endpoint(owner, name)).then(
+    await fetch(...githubFetch1Endpoint(owner, name)).then(
       async (res) => await res.json(),
     )
   ).data.repository
-  const readme = await fetch(...fetch2Endpoint(owner, name)).then(
+  const readme = await fetch(...githubFetch2Endpoint(owner, name)).then(
     async (res) => await res.text(),
   )
   githubResponse.readme = readme
@@ -130,7 +130,7 @@ const fetchGitHub = async ({
       let defaultBranchRef: NonNullable<GitHubResponse["defaultBranchRef"]>
       do {
         defaultBranchRef = (
-          await fetch(...fetch1Endpoint(owner, name, cursor)).then(
+          await fetch(...githubFetch1Endpoint(owner, name, cursor)).then(
             async (res) => await res.json(),
           )
         ).data.repository.defaultBranchRef
@@ -144,9 +144,14 @@ const fetchGitHub = async ({
   return githubResponse
 }
 
+const npmFetch1Endpoint = (name: string): Parameters<typeof fetch> => [
+  `https://registry.npmjs.com/${name}`,
+]
+
 const fetchNPM = async ({
-  package,
-}: NonNullable<Project.Instruction.Sources["npm"]>): Promise<NPMResponse> => {}
+  name,
+}: NonNullable<Project.Instruction.Sources["npm"]>): Promise<NPMResponse> =>
+  await fetch(...npmFetch1Endpoint(name)).then(async (res) => await res.json())
 
 const githubParseableRegex = /^name|description|lifespan|latestRelease|pageContents$/
 

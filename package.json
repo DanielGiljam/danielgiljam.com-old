@@ -9,6 +9,7 @@
   "author": "Daniel Giljam (https://github.com/DanielGiljam)",
   "repository": "github:DanielGiljam/danielgiljam.com",
   "scripts": {
+    "populate": "ts-node-script -O '{\"module\": \"commonjs\"}' scripts/firestore/populate.ts",
     "dev": "next",
     "build": "rimraf .next && next build",
     "start": "next start",
@@ -21,6 +22,8 @@
     "tff": "npm run tsc && npm run fix && npm run format"
   },
   "dependencies": {
+    "chalk": "^4.1.0",
+    "dotenv": "^8.2.0",
     "firebase-admin": "^9.0.0",
     "isomorphic-unfetch": "^3.0.0",
     "moment": "^2.27.0",

@@ -1,6 +1,7 @@
 import {promises as fs} from "fs"
 import path from "path"
 
+import chalk from "chalk"
 import {firestore} from "firebase-admin"
 import fetch from "isomorphic-unfetch"
 import moment from "moment"
@@ -96,20 +97,25 @@ const githubFetch1Endpoint = (
   owner: string,
   name: string,
   cursor?: string,
-): Parameters<typeof fetch> => [
-  "https://api.github.com/graphql",
-  {
-    method: "post",
-    body: JSON.stringify({
-      query: cursor == null ? graphqlQuery1 : graphqlQuery2,
-      variables: {
-        owner,
-        name,
-        cursor,
+): Parameters<typeof fetch> => {
+  return [
+    "https://api.github.com/graphql",
+    {
+      method: "post",
+      body: JSON.stringify({
+        query: cursor == null ? graphqlQuery1 : graphqlQuery2,
+        variables: {
+          owner,
+          name,
+          cursor,
+        },
+      }),
+      headers: {
+        Authorization: `token ${process.env.GITHUB_ACCESS_TOKEN as string}`,
       },
-    }),
-  },
-]
+    },
+  ]
+}
 const githubFetch2Endpoint = (
   owner: string,
   name: string,
@@ -129,9 +135,12 @@ const fetchGitHub = async (
     ...githubFetch1Endpoint(owner, name),
   ).then(async (res) => {
     const json = await res.json()
+    // console.log(`Response for "${id}":`, JSON.stringify(json, undefined, 2))
     if (json?.data?.repository == null) {
       throw new Error(
-        `[${id}._source.github] Failed to decode response from GitHub.`,
+        `${chalk.red(
+          "Unable to decode response from GitHub",
+        )} in "${id}._source.github".`,
       )
     }
     return json.data.repository
@@ -178,7 +187,9 @@ const fetchNPM = async (
     const json = await res.json()
     if (json == null) {
       throw new Error(
-        `[${id}._sources.npm] Unable to decode response from NPM.`,
+        `${chalk.red(
+          "Unable to decode response from NPM",
+        )} in "${id}._sources.npm".`,
       )
     }
     return json
@@ -200,7 +211,11 @@ const throwFailedAcquisition = (
   fieldName: string,
   source: string,
 ): never => {
-  throw new Error(`[${id}] Failed to acquire "${fieldName}" from ${source}.`)
+  throw new Error(
+    `${chalk.keyword("orange")(
+      `Failed to acquire "${fieldName}" from ${source}`,
+    )} in "${id}".`,
+  )
 }
 
 const nameRegex = /(?<=^# ).*/
@@ -241,7 +256,7 @@ const githubParsers: GitHubParsers = {
     return throwFailedAcquisition(id, "lifespan", "GitHub")
   },
   latestRelease(id, {releases}) {
-    const {tagName, publishedAt, isPrerelease} = releases.nodes[0]
+    const {tagName, publishedAt, isPrerelease} = releases.nodes[0] ?? {}
     const execResult = latestReleaseVersionRegex.exec(tagName)
     if (execResult != null) {
       return {
@@ -313,11 +328,14 @@ const npmParsers: NPMParsers = {
 }
 
 const throwUnsupportedSourceDirective = (
-  path: string,
+  id: string,
+  fieldName: string,
   sourceDirective: string,
 ): void => {
   throw new Error(
-    `[${path}] Unsupported source directive: "${sourceDirective}". This source directive cannot be used for this field.`,
+    `${chalk.red(
+      `Unsupported source directive: "${sourceDirective}".`,
+    )} This source directive cannot be used for field "${fieldName}" in "${id}".`,
   )
 }
 
@@ -329,83 +347,93 @@ const resolve = async <FN extends FieldName>(
   github?: GitHubResponse,
   npm?: NPMResponse,
 ): Promise<Project.Firestore.ServerClientLibrary[FN]> => {
-  /**
-   * On the type assertions / type system overrides in this function:
-   *
-   * - The existence of `github` and `npm` was checked earlier (in the `validate` function)
-   *   in the cases where they are asserted to not be null.
-   * - Thanks to the mapped types of `githubParsers` and `npmParsers` we know that
-   *   the expressions in the return statements always will return the correct types.
-   *   (Or throw errors, hence the try/catch blocks.)
-   */
   const fieldValue = instruction[fieldName]
   if (fieldValue != null) {
     if (fieldValue === "_github") {
       if (isGitHubParseable(fieldName)) {
         try {
-          return githubParsers[fieldName](
+          const resolvedValue = githubParsers[fieldName](
             id,
             github as GitHubResponse,
           ) as Project.Firestore.ServerClientLibrary[FN]
+          _sourceMap[fieldName] = "github"
+          return resolvedValue
         } catch (error) {
           if (isNPMParseable(fieldName) && npm != null) {
             console.warn(error.message)
-            console.warn(`[${id}.${fieldName}] Falling back to NPM...`)
-            return npmParsers[fieldName](
+            console.warn(
+              `${chalk.keyword("orange")(
+                "Falling back to NPM",
+              )} with "${id}.${fieldName}".`,
+            )
+            const resolvedValue = npmParsers[fieldName](
               id,
               npm,
             ) as Project.Firestore.ServerClientLibrary[FN]
+            _sourceMap[fieldName] = "npm"
+            return resolvedValue
           } else {
             throw error
           }
         }
       } else {
-        throwUnsupportedSourceDirective(`${id}.${fieldName}`, "_github")
+        throwUnsupportedSourceDirective(id, fieldName, "_github")
       }
     }
     if (fieldValue === "_npm") {
       if (isNPMParseable(fieldName)) {
         try {
-          return npmParsers[fieldName](
+          const resolvedValue = npmParsers[fieldName](
             id,
             npm as NPMResponse,
           ) as Project.Firestore.ServerClientLibrary[FN]
+          _sourceMap[fieldName] = "npm"
+          return resolvedValue
         } catch (error) {
           if (isGitHubParseable(fieldName) && github != null) {
             console.warn(error.message)
-            console.warn(`[${id}.${fieldName}] Falling back to GitHub...`)
-            return githubParsers[fieldName](
+            console.warn(
+              `${chalk.keyword("orange")(
+                "Falling back to GitHub",
+              )} with "${id}.${fieldName}".`,
+            )
+            const resolvedValue = githubParsers[fieldName](
               id,
               github,
             ) as Project.Firestore.ServerClientLibrary[FN]
+            _sourceMap[fieldName] = "github"
+            return resolvedValue
           } else {
             throw error
           }
         }
       } else {
-        throwUnsupportedSourceDirective(`${id}.${fieldName}`, "_npm")
+        throwUnsupportedSourceDirective(id, fieldName, "_npm")
       }
     }
-    // The point of the previous blocks were to conclude
-    // that just returning `fieldValue` is okay.
+    _sourceMap[fieldName] = "self"
     return fieldValue as Project.Firestore.ServerClientLibrary[FN]
   } else {
     if (isGitHubParseable(fieldName) && github != null) {
       try {
-        return githubParsers[fieldName](
+        const resolvedValue = githubParsers[fieldName](
           id,
           github,
         ) as Project.Firestore.ServerClientLibrary[FN]
+        _sourceMap[fieldName] = "github"
+        return resolvedValue
       } catch (error) {
         console.warn(error.message)
       }
     }
     if (isNPMParseable(fieldName) && npm != null) {
       try {
-        return npmParsers[fieldName](
+        const resolvedValue = npmParsers[fieldName](
           id,
           npm,
         ) as Project.Firestore.ServerClientLibrary[FN]
+        _sourceMap[fieldName] = "npm"
+        return resolvedValue
       } catch (error) {
         console.warn(error.message)
       }
@@ -415,11 +443,18 @@ const resolve = async <FN extends FieldName>(
       case "description":
       case "lifespan":
         throw new Error(
-          `[${id}.${fieldName}] Unable to resolve non-nullable field.`,
+          `${chalk.red(
+            `Unable to resolve non-nullable field "${fieldName}"`,
+          )} in "${id}".`,
         )
+      case "links":
+      case "downloads":
+        return undefined as Project.Firestore.ServerClientLibrary[FN]
       default:
         console.warn(
-          `[${id}.${fieldName}] Unable to resolve field. The value of this field will be undefined`,
+          `${chalk.keyword("orange")(
+            `Unable to resolve field "${fieldName}".`,
+          )} The value of "${fieldName}" will be undefined in "${id}".`,
         )
         return undefined as Project.Firestore.ServerClientLibrary[FN]
     }
@@ -516,9 +551,11 @@ const throwUnresolvableNonNullableFields = (
   ...fields: string[]
 ): void => {
   throw new Error(
-    `[${id}] Non-nullable fields ${fields
-      .map((field) => `"${field}"`)
-      .join(", ")} lack means to be resolved.`,
+    `${chalk.red(
+      `Non-nullable field(s) ${fields
+        .map((field) => `"${field}"`)
+        .join(", ")} lack means to be resolved`,
+    )} in "${id}".`,
   )
 }
 
@@ -527,7 +564,9 @@ const throwMissingSourceConfiguration = (
   sourceConfigName: string,
 ): void => {
   throw new Error(
-    `[${id}] Missing source configuration: "${sourceConfigName}". Source directives suggest a source configuration should be present.`,
+    `${chalk.red(
+      `Missing source configuration: "${sourceConfigName}".`,
+    )} Source directives suggest a source configuration should be present in "${id}".`,
   )
 }
 
@@ -571,46 +610,54 @@ const validate = async (
  * This function populates Firestore with projects (documents describing projects).
  * @param db Authenticated, initialized Firestore instance.
  * @param instructions Instructions that tell how to populate.
+ * @param collectionName Name of the collection where the documents will go.
  * @param options Options for toggling test mode and whether to write a dump.
  */
 const populate = async (
   db: firestore.Firestore,
   instructions: PopulationInstructions,
+  collectionName: string,
   options: PopulateOptions = {},
 ): Promise<void> => {
   graphqlQuery1 = await fs.readFile(
-    path.resolve(__dirname, "./github-query-1.min.graphql"),
+    path.resolve(__dirname, "./github-query-1.graphql"),
     "utf-8",
   )
   graphqlQuery2 = await fs.readFile(
-    path.resolve(__dirname, "./github-query-1.min.graphql"),
+    path.resolve(__dirname, "./github-query-2.graphql"),
     "utf-8",
   )
+  if (process.env.GITHUB_ACCESS_TOKEN == null) {
+    throw new Error("Environment variable GITHUB_ACCESS_TOKEN is not defined.")
+  }
+  db.settings({ignoreUndefinedProperties: true})
   const dump: {[key: string]: Project.Firestore.ServerClientLibrary} = {}
   const batch = db.batch()
-  const collRef = db.collection("projects")
+  const collRef = db.collection(collectionName)
   await Promise.allSettled(
     Object.entries(instructions).map(
       async ([id, instruction]) =>
         await validate(id, instruction)
           .then(async () => await assemble(id, instruction))
           .then((assembledProject) => {
+            dump[id] = assembledProject
             batch.set(collRef.doc(id), assembledProject)
             return {id, ...assembledProject}
           }),
     ),
   ).then((results) => {
     let abort = false
+    let fulfilled = 0
     results.forEach((result) => {
       if (result.status === "fulfilled") {
-        const {id, ...assembledProject} = result.value
-        console.info(`Assembled "${id}".`)
-        dump[id] = assembledProject
+        console.info(`Assembled "${result.value.id}".`)
+        fulfilled++
       } else {
-        console.error(result.reason)
+        console.error(result.reason.message)
         abort = true
       }
     })
+    console.info(`${fulfilled}/${results.length} projects assembled.`)
     if (abort) {
       throw new Error("Some projects failed to assemble. Batch aborted.")
     }

@@ -7,4 +7,5 @@ import instructions from "../../populate-instructions.json"
 populate(firestore, instructions, "projects", {
   testMode: true,
   writeDump: true,
+  writeNetworkDump: true,
 }).catch((error) => console.error(error))

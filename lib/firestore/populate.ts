@@ -15,6 +15,18 @@ interface PopulationInstructions {
 interface PopulateOptions {
   testMode?: boolean
   writeDump?: boolean
+  writeNetworkDump?: boolean
+}
+
+interface Dump {
+  [key: string]: Project.Firestore.ServerClientLibrary
+}
+
+interface NetworkDump {
+  [key: string]: {
+    github?: any
+    npm?: any
+  }
 }
 
 interface GitHubResponse {
@@ -130,12 +142,13 @@ const fetchGitHub = async (
     name,
     countLifespanAsStillOngoing,
   }: NonNullable<Project.Instruction.Sources["github"]>,
+  networkDumpProperty: NetworkDump[keyof NetworkDump],
 ): Promise<GitHubResponse> => {
   const githubResponse: GitHubResponse = await fetch(
     ...githubFetch1Endpoint(owner, name),
   ).then(async (res) => {
     const json = await res.json()
-    // console.log(`Response for "${id}":`, JSON.stringify(json, undefined, 2))
+    networkDumpProperty.github = json
     if (json?.data?.repository == null) {
       throw new Error(
         `${chalk.red(
@@ -182,9 +195,11 @@ const npmFetch1Endpoint = (name: string): Parameters<typeof fetch> => [
 const fetchNPM = async (
   id: string,
   {name}: NonNullable<Project.Instruction.Sources["npm"]>,
+  networkDumpProperty: NetworkDump[keyof NetworkDump],
 ): Promise<NPMResponse> =>
   await fetch(...npmFetch1Endpoint(name)).then(async (res) => {
     const json = await res.json()
+    networkDumpProperty.npm = json
     if (json == null) {
       throw new Error(
         `${chalk.red(
@@ -464,19 +479,21 @@ const resolve = async <FN extends FieldName>(
 const assemble = async (
   id: string,
   instruction: Project.Instruction,
+  networkDump: NetworkDump,
 ): Promise<Project.Firestore.ServerClientLibrary> => {
   const _sourceMap: Project.MetaData.SourceMap = {
     name: "self",
     description: "self",
     lifespan: "self",
   }
+  networkDump[id] = {}
   const github =
     instruction._sources?.github != null
-      ? await fetchGitHub(id, instruction._sources.github)
+      ? await fetchGitHub(id, instruction._sources.github, networkDump[id])
       : undefined
   const npm =
     instruction._sources?.npm != null
-      ? await fetchNPM(id, instruction._sources.npm)
+      ? await fetchNPM(id, instruction._sources.npm, networkDump[id])
       : undefined
   return {
     name: await resolve(id, "name", instruction, _sourceMap, github, npm),
@@ -631,14 +648,15 @@ const populate = async (
     throw new Error("Environment variable GITHUB_ACCESS_TOKEN is not defined.")
   }
   db.settings({ignoreUndefinedProperties: true})
-  const dump: {[key: string]: Project.Firestore.ServerClientLibrary} = {}
+  const dump: Dump = {}
+  const networkDump: NetworkDump = {}
   const batch = db.batch()
   const collRef = db.collection(collectionName)
   await Promise.allSettled(
     Object.entries(instructions).map(
       async ([id, instruction]) =>
         await validate(id, instruction)
-          .then(async () => await assemble(id, instruction))
+          .then(async () => await assemble(id, instruction, networkDump))
           .then((assembledProject) => {
             dump[id] = assembledProject
             batch.set(collRef.doc(id), assembledProject)
@@ -663,9 +681,17 @@ const populate = async (
     }
   })
   if (options.writeDump ?? false) {
+    console.info("Writing dump.")
     await fs.writeFile(
       path.resolve(process.cwd(), "./populate-dump.json"),
       JSON.stringify(dump, undefined, 2),
+    )
+  }
+  if (options.writeNetworkDump ?? false) {
+    console.info("Writing network dump.")
+    await fs.writeFile(
+      path.resolve(process.cwd(), "./network-dump.json"),
+      JSON.stringify(networkDump, undefined, 2),
     )
   }
   if (options.testMode ?? false) return

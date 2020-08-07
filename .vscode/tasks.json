@@ -10,7 +10,7 @@
       },
       "problemMatcher": [],
       "label": "npm: build",
-      "detail": "rimraf .next && next build"
+      "detail": "npm run build:next && npm run build:functions"
     }
   ]
 }

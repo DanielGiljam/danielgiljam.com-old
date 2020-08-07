@@ -184,3 +184,6 @@ $RECYCLE.BIN/
 
 populate-dump.json
 network-dump.json
+saved-data
+out
+.firebaserc

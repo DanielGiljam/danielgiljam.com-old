@@ -13,11 +13,6 @@ if (serviceAccountKey == null) {
   )
 }
 
-const databaseURL = process.env.FIREBASE_DATABASE_URL
-if (databaseURL == null) {
-  throw new Error("Environment variable FIREBASE_DATABASE_URL is not defined.")
-}
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serviceAccount = require(relative(
   __dirname,
@@ -26,7 +21,6 @@ const serviceAccount = require(relative(
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL,
 })
 
 export default admin.firestore()

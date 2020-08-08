@@ -8,7 +8,7 @@ declare namespace Project {
         countLifespanAsStillOngoing?: boolean
       }
       npm?: {
-        package: string
+        name: string
       }
     }
   }
@@ -18,10 +18,9 @@ declare namespace Project {
    * This applies only to fields that can have another source than "self".
    */
   export interface Instruction {
-    readonly id: Id
-    name: Name | "_github" | "_npm"
-    description: Description | "_github" | "_npm"
-    lifespan: Lifespan<string> | "_github"
+    name?: Name | "_github" | "_npm"
+    description?: Description | "_github" | "_npm"
+    lifespan?: Lifespan<string> | "_github"
     latestRelease?: Release<string> | "_github" | "_npm"
     links?: Link[]
     pageContents?: PageContents | "_github" | "_npm"
@@ -32,7 +31,7 @@ declare namespace Project {
   export namespace MetaData {
     /** More sources may be added in the future. */
     export interface Sources<D = Date> {
-      self: {
+      readonly self: {
         /** When this changes, `._modifiedAt` must change too to the same value as this. */
         modifiedAt: D
       }
@@ -44,7 +43,7 @@ declare namespace Project {
         refreshedAt: D
       }
       npm?: {
-        package: string
+        name: string
         /** When this changes, `._modifiedAt` must change too to the same value as this. */
         refreshedAt: D
       }
@@ -109,6 +108,7 @@ declare namespace Project {
   export interface Release<D = Date> {
     version: string
     timestamp: D
+    isPrerelease?: boolean
   }
   export interface Link {
     /** More link types may be added in the future. */
@@ -135,36 +135,6 @@ declare namespace Project {
     downloads?: Download[]
   }
   export type Full<D = Date> = Core<D> & MetaData<D>
-}
-
-// TODO: deprecate the old project interface definition
-
-export interface Release {
-  version: string
-  date: string
-}
-
-export interface ProjectURL {
-  type: "GitHub" | "NPM"
-  url: string
-}
-
-export interface OldProject {
-  id: string
-  name: string
-  slug: string
-  releases: Release[]
-  firstReleaseDate: string[]
-  latestReleaseDate: string[]
-  urls: ProjectURL[]
-}
-
-export interface OldProjectAsProp {
-  project: OldProject
-}
-
-export interface OldProjectsAsProp {
-  projects: OldProject[]
 }
 
 export default Project

@@ -7,29 +7,34 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Next.js Dev Server",
+      "name": "Firebase Local Emulator Suite",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run-script", "dev"],
+      "runtimeArgs": ["run-script", "emulate"],
+      "internalConsoleOptions": "neverOpen",
       "serverReadyAction": {
-        "action": "debugWithChrome",
-        "pattern": "started server on http://localhost:3000",
-        "uriFormat": "http://localhost:3000",
-        "webRoot": "${workspaceFolder}"
+        "action": "openExternally",
+        "pattern": "Web / API server started at http://localhost:(\\d+)",
+        "uriFormat": "http://localhost:%s"
       }
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Next.js Server",
+      "name": "Next.js Dev Server",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run-script", "start"],
-      "preLaunchTask": "${defaultBuildTask}",
+      "runtimeArgs": ["run-script", "dev"],
+      "internalConsoleOptions": "neverOpen",
       "serverReadyAction": {
         "action": "debugWithChrome",
         "pattern": "started server on http://localhost:3000",
-        "uriFormat": "http://localhost:3000",
-        "webRoot": "${workspaceFolder}"
+        "uriFormat": "http://localhost:3000"
       }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Next.js Dev Server + Firebase Emulators",
+      "configurations": ["Next.js Dev Server", "Firebase Local Emulator Suite"]
     }
   ]
 }

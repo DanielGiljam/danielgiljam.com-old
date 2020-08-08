@@ -1,33 +1,44 @@
-import {promises as fs} from "fs"
-import path from "path"
-
 import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import {GetStaticPaths, GetStaticProps} from "next"
 
-import {OldProject as Project, OldProjectAsProp as ProjectAsProp} from "../../types/data/Project"
+import Project from "../../types/data/Project"
+import {projectsConverterCore} from "../firebase/firestore/converters/projects"
+import initializeAdminSDK from "../firebase/initializeAdminSDK"
 import {defaultSpacing} from "../theme/constants"
 
-const getProjects = async (): Promise<Project[]> =>
-  JSON.parse(
-    await fs.readFile(path.resolve("env/mock-data/projects.json"), "utf-8"),
-  ).projects
+interface ProjectPageProps {
+  project: Project.Core<string>
+}
+
+const db = initializeAdminSDK().firestore()
 
 export const getStaticProps: GetStaticProps<
-  ProjectAsProp,
+  ProjectPageProps,
   {project?: string}
 > = async (context) => {
   const slug = context.params?.project ?? ""
-  const project = (await getProjects()).find((project) => project.slug === slug)
-  if (project == null)
+  const project = await db
+    .collection("projects")
+    .withConverter(projectsConverterCore)
+    .doc(slug)
+    .get()
+  if (!project.exists) {
     throw new Error(
       `Cannot get static props for project page "/${slug}". Project "${slug}" does not exist.`,
     )
-  return {props: {project}}
+  }
+  return {
+    props: {
+      project: project.data() as Project.Core<string>,
+    },
+  }
 }
 
-export const getStaticPaths: GetStaticPaths = async (...args) => ({
-  paths: (await getProjects()).map((project) => "/" + project.slug),
+export const getStaticPaths: GetStaticPaths = async () => ({
+  paths: (await db.collection("projects").listDocuments()).map(
+    ({id}) => "/" + id,
+  ),
   fallback: false,
 })
 
@@ -39,8 +50,9 @@ const useStyles = makeStyles((theme) =>
   }),
 )
 
-const ProjectPage = ({project}: ProjectAsProp): JSX.Element => {
+const ProjectPage = ({project}: ProjectPageProps): JSX.Element => {
   const styles = useStyles()
+  console.log("project:", project)
   return (
     <div className={styles.container}>
       <Typography align={"center"}>{project.name}</Typography>

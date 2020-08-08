@@ -1,0 +1,19 @@
+query GitHubQuery2($owner: String!, $name: String!, $cursor: String!) {
+  repository(owner: $owner, name: $name) {
+    defaultBranchRef {
+      target {
+        ... on Commit {
+          history(before: $cursor) {
+            nodes {
+              authoredDate
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,1 +1,6 @@
 .next
+out
+functions/lib
+saved-data
+populate-dump.json
+network-dump.json

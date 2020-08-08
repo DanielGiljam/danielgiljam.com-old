@@ -9,16 +9,29 @@
   "author": "Daniel Giljam (https://github.com/DanielGiljam)",
   "repository": "github:DanielGiljam/danielgiljam.com",
   "scripts": {
+    "populate": "ts-node-script -O '{\"module\": \"commonjs\"}' scripts/firestore/populate.ts",
     "dev": "next",
-    "build": "rimraf .next && next build",
-    "start": "next start",
-    "build-and-start": "npm run build && npm run start",
+    "build:next": "rimraf .next out && next build && next export",
+    "build:functions": "npm --prefix functions run build",
+    "build": "npm run build:next && npm run build:functions",
+    "emulate": "firebase emulators:start --import saved-data --export-on-exit",
+    "build-and-emulate": "npm run build && npm run emulate",
     "tsc": "tsc",
     "lint": "eslint .",
     "fix": "eslint --fix .",
     "prettier": "prettier --check .",
     "format": "prettier --write .",
     "tff": "npm run tsc && npm run fix && npm run format"
+  },
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "dotenv": "^8.2.0",
+    "firebase-admin": "^9.0.0",
+    "firebase-tools": "^8.7.0",
+    "isomorphic-unfetch": "^3.0.0",
+    "moment": "^2.27.0",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
   },
   "devDependencies": {
     "@danielgiljam/eslint-config": "^2.0.1",
@@ -45,8 +58,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "rimraf": "^3.0.2",
-    "svg-inline-loader": "^0.8.2",
-    "typescript": "^3.9.7"
+    "svg-inline-loader": "^0.8.2"
   },
   "husky": {
     "hooks": {

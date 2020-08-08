@@ -1,0 +1,30 @@
+query GitHubQuery1($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    name
+    description
+    createdAt
+    defaultBranchRef {
+      target {
+        ... on Commit {
+          authoredDate
+          history {
+            nodes {
+              authoredDate
+            }
+            pageInfo {
+              endCursor
+              hasNextPage
+            }
+          }
+        }
+      }
+    }
+    releases(last: 1) {
+      nodes {
+        tagName
+        publishedAt
+        isPrerelease
+      }
+    }
+  }
+}

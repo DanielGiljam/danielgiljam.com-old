@@ -3,25 +3,30 @@ import ListItem from "@material-ui/core/ListItem"
 import ListItemText from "@material-ui/core/ListItemText"
 import Link from "next/link"
 
-import {
-  OldProjectAsProp as ProjectAsProp,
-  OldProjectsAsProp as ProjectsAsProp,
-} from "../../types/data/Project"
+interface ProjectListItemProps {
+  id: string
+  name: string
+  description: string
+}
 
-const Item = ({project}: ProjectAsProp): JSX.Element => (
+export interface ProjectListProps {
+  projects: ProjectListItemProps[]
+}
+
+const Item = ({id, name, description}: ProjectListItemProps): JSX.Element => (
   <li>
-    <Link as={"/" + project.slug} href={"/[project]"} passHref>
+    <Link as={"/" + id} href={"/[project]"} passHref>
       <ListItem component={"a"} button>
-        <ListItemText primary={project.name} secondary={project.slug} />
+        <ListItemText primary={name} secondary={description} />
       </ListItem>
     </Link>
   </li>
 )
 
-const ProjectList = ({projects}: ProjectsAsProp): JSX.Element => (
+const ProjectList = ({projects}: ProjectListProps): JSX.Element => (
   <List>
     {projects.map((project) => (
-      <Item key={project.id} project={project} />
+      <Item key={project.id} {...project} />
     ))}
   </List>
 )

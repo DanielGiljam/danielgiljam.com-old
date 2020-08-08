@@ -1,23 +1,27 @@
-import {promises as fs} from "fs"
-import path from "path"
-
 import {GetStaticProps} from "next"
 
-import {OldProjectsAsProp as ProjectsAsProp} from "../../types/data/Project"
-import ProjectList from "../components/ProjectList"
+import ProjectList, {ProjectListProps} from "../components/ProjectList"
+import initializeAdminSDK from "../firebase/initializeAdminSDK"
 
-export const getStaticProps: GetStaticProps<ProjectsAsProp> = async () => ({
+const db = initializeAdminSDK().firestore()
+
+export const getStaticProps: GetStaticProps<ProjectListProps> = async () => ({
   props: {
-    projects: JSON.parse(
-      await fs.readFile(path.resolve("env/mock-data/projects.json"), "utf-8"),
-    ).projects,
+    projects: (await db.collection("projects").get()).docs.map((project) => ({
+      id: project.id,
+      name: project.get("name"),
+      description: project.get("description"),
+    })),
   },
 })
 
-const Index = ({projects}: ProjectsAsProp): JSX.Element => (
-  <div>
-    <ProjectList projects={projects} />
-  </div>
-)
+const Index = ({projects}: ProjectListProps): JSX.Element => {
+  console.log("projects:", projects)
+  return (
+    <div>
+      <ProjectList projects={projects} />
+    </div>
+  )
+}
 
 export default Index

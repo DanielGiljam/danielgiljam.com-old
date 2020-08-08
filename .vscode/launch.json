@@ -11,9 +11,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run-script", "emulate"],
       "internalConsoleOptions": "neverOpen",
-      "presentation": {
-        "hidden": true
-      },
       "serverReadyAction": {
         "action": "openExternally",
         "pattern": "Web / API server started at http://localhost:(\\d+)",
@@ -27,9 +24,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run-script", "dev"],
       "internalConsoleOptions": "neverOpen",
-      "presentation": {
-        "hidden": true
-      },
       "serverReadyAction": {
         "action": "debugWithChrome",
         "pattern": "started server on http://localhost:3000",

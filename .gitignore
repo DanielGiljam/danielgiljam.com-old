@@ -187,3 +187,4 @@ network-dump.json
 saved-data
 out
 .firebaserc
+firebase-service-account-key.json

@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node-script
 
-import firestore from "../../lib/firestore"
 import populate from "../../lib/firestore/populate"
 import instructions from "../../populate-instructions.json"
+import initializeAdminSDK from "../../src/firebase/initializeAdminSDK"
 
-populate(firestore, instructions, "projects", {
+populate(initializeAdminSDK().firestore(), instructions, "projects", {
   testMode: true,
   writeDump: true,
   writeNetworkDump: true,

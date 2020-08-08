@@ -1,5 +1,3 @@
-import {firestore} from "firebase-admin"
-
 declare namespace Project {
   export namespace Instruction {
     /** More sources may be added in the future. */
@@ -28,10 +26,6 @@ declare namespace Project {
     pageContents?: PageContents | "_github" | "_npm"
     downloads?: Download[]
     _sources?: Instruction.Sources
-  }
-
-  export namespace Firestore {
-    export type ServerClientLibrary = Omit<Full<firestore.FieldValue>, "id">
   }
 
   export namespace MetaData {
@@ -141,36 +135,6 @@ declare namespace Project {
     downloads?: Download[]
   }
   export type Full<D = Date> = Core<D> & MetaData<D>
-}
-
-// TODO: deprecate the old project interface definition
-
-export interface Release {
-  version: string
-  date: string
-}
-
-export interface ProjectURL {
-  type: "GitHub" | "NPM"
-  url: string
-}
-
-export interface OldProject {
-  id: string
-  name: string
-  slug: string
-  releases: Release[]
-  firstReleaseDate: string[]
-  latestReleaseDate: string[]
-  urls: ProjectURL[]
-}
-
-export interface OldProjectAsProp {
-  project: OldProject
-}
-
-export interface OldProjectsAsProp {
-  projects: OldProject[]
 }
 
 export default Project

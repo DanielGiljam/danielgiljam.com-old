@@ -8,6 +8,8 @@ import moment from "moment"
 
 import Project from "../../types/data/Project"
 
+type ProjectToFirestore = Omit<Project.Full<firestore.FieldValue>, "id">
+
 interface PopulationInstructions {
   [key: string]: Project.Instruction
 }
@@ -19,7 +21,7 @@ interface PopulateOptions {
 }
 
 interface Dump {
-  [key: string]: Project.Firestore.ServerClientLibrary
+  [key: string]: ProjectToFirestore
 }
 
 interface NetworkDump {
@@ -81,16 +83,13 @@ type GitHubParsers = {
   [K in GitHubParseable]: (
     id: string,
     github: GitHubResponse,
-  ) => Project.Firestore.ServerClientLibrary[K]
+  ) => ProjectToFirestore[K]
 }
 
 type NPMParseable = "name" | "description" | "latestRelease" | "pageContents"
 
 type NPMParsers = {
-  [K in NPMParseable]: (
-    id: string,
-    npm: NPMResponse,
-  ) => Project.Firestore.ServerClientLibrary[K]
+  [K in NPMParseable]: (id: string, npm: NPMResponse) => ProjectToFirestore[K]
 }
 
 type FieldName =
@@ -361,7 +360,7 @@ const resolve = async <FN extends FieldName>(
   _sourceMap: Project.MetaData.SourceMap,
   github?: GitHubResponse,
   npm?: NPMResponse,
-): Promise<Project.Firestore.ServerClientLibrary[FN]> => {
+): Promise<ProjectToFirestore[FN]> => {
   const fieldValue = instruction[fieldName]
   if (fieldValue != null) {
     if (fieldValue === "_github") {
@@ -370,7 +369,7 @@ const resolve = async <FN extends FieldName>(
           const resolvedValue = githubParsers[fieldName](
             id,
             github as GitHubResponse,
-          ) as Project.Firestore.ServerClientLibrary[FN]
+          ) as ProjectToFirestore[FN]
           _sourceMap[fieldName] = "github"
           return resolvedValue
         } catch (error) {
@@ -384,7 +383,7 @@ const resolve = async <FN extends FieldName>(
             const resolvedValue = npmParsers[fieldName](
               id,
               npm,
-            ) as Project.Firestore.ServerClientLibrary[FN]
+            ) as ProjectToFirestore[FN]
             _sourceMap[fieldName] = "npm"
             return resolvedValue
           } else {
@@ -401,7 +400,7 @@ const resolve = async <FN extends FieldName>(
           const resolvedValue = npmParsers[fieldName](
             id,
             npm as NPMResponse,
-          ) as Project.Firestore.ServerClientLibrary[FN]
+          ) as ProjectToFirestore[FN]
           _sourceMap[fieldName] = "npm"
           return resolvedValue
         } catch (error) {
@@ -415,7 +414,7 @@ const resolve = async <FN extends FieldName>(
             const resolvedValue = githubParsers[fieldName](
               id,
               github,
-            ) as Project.Firestore.ServerClientLibrary[FN]
+            ) as ProjectToFirestore[FN]
             _sourceMap[fieldName] = "github"
             return resolvedValue
           } else {
@@ -427,14 +426,14 @@ const resolve = async <FN extends FieldName>(
       }
     }
     _sourceMap[fieldName] = "self"
-    return fieldValue as Project.Firestore.ServerClientLibrary[FN]
+    return fieldValue as ProjectToFirestore[FN]
   } else {
     if (isGitHubParseable(fieldName) && github != null) {
       try {
         const resolvedValue = githubParsers[fieldName](
           id,
           github,
-        ) as Project.Firestore.ServerClientLibrary[FN]
+        ) as ProjectToFirestore[FN]
         _sourceMap[fieldName] = "github"
         return resolvedValue
       } catch (error) {
@@ -446,7 +445,7 @@ const resolve = async <FN extends FieldName>(
         const resolvedValue = npmParsers[fieldName](
           id,
           npm,
-        ) as Project.Firestore.ServerClientLibrary[FN]
+        ) as ProjectToFirestore[FN]
         _sourceMap[fieldName] = "npm"
         return resolvedValue
       } catch (error) {
@@ -464,14 +463,14 @@ const resolve = async <FN extends FieldName>(
         )
       case "links":
       case "downloads":
-        return undefined as Project.Firestore.ServerClientLibrary[FN]
+        return undefined as ProjectToFirestore[FN]
       default:
         console.warn(
           `${chalk.keyword("orange")(
             `Unable to resolve field "${fieldName}".`,
           )} The value of "${fieldName}" will be undefined in "${id}".`,
         )
-        return undefined as Project.Firestore.ServerClientLibrary[FN]
+        return undefined as ProjectToFirestore[FN]
     }
   }
 }
@@ -480,7 +479,7 @@ const assemble = async (
   id: string,
   instruction: Project.Instruction,
   networkDump: NetworkDump,
-): Promise<Project.Firestore.ServerClientLibrary> => {
+): Promise<ProjectToFirestore> => {
   const _sourceMap: Project.MetaData.SourceMap = {
     name: "self",
     description: "self",

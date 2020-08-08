@@ -54,7 +54,8 @@ const ProjectPage = ({project}: ProjectPageProps): JSX.Element => {
   const styles = useStyles()
   return (
     <div className={styles.container}>
-      <Typography align={"center"}>{project.name}</Typography>
+      <Typography variant={"h1"}>{project.name}</Typography>
+      <div dangerouslySetInnerHTML={{__html: project.pageContents ?? ""}} />
     </div>
   )
 }

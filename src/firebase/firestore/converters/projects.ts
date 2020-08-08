@@ -1,11 +1,17 @@
+import {transform} from "@babel/core"
 import {
   FirestoreDataConverter,
   QueryDocumentSnapshot,
   Timestamp,
 } from "@google-cloud/firestore"
+import {sync} from "@mdx-js/mdx"
+import {MDXProvider, mdx as createElement} from "@mdx-js/react"
 import moment from "moment"
+import React from "react"
+import {renderToStaticMarkup} from "react-dom/server"
 
 import Project from "../../../../types/data/Project"
+import components from "../../../theme/mdx-components"
 
 const lifespanFromFirestore = (
   lifespan: Project.Lifespan<Timestamp>,
@@ -26,6 +32,29 @@ const latestReleaseFromFirestore = ({
   timestamp: moment(timestamp.toDate()).toISOString(),
   ...latestRelease,
 })
+
+/** Inspired by the code sample at https://mdxjs.com/getting-started#do-it-yourself */
+const pageContentsFromFirestore = (
+  pageContents: Project.PageContents,
+): Project.PageContents => {
+  const jsx = sync(pageContents, {skipExport: true})
+  const code = transform(jsx, {plugins: ["@babel/plugin-transform-react-jsx"]})
+    .code
+  const scope = {mdx: createElement}
+  // eslint-disable-next-line
+  const fn = new Function(
+    "React",
+    ...Object.keys(scope),
+    `${code}; return React.createElement(MDXContent)`,
+  )
+  const element = fn(React, ...Object.values(scope))
+  const elementWithProvider = React.createElement(
+    MDXProvider,
+    {components},
+    element,
+  )
+  return renderToStaticMarkup(elementWithProvider)
+}
 
 const sourcesFromFirestore = (
   sources: Project.MetaData.Sources<Timestamp>,
@@ -85,7 +114,7 @@ export const projectsConverterCore: FirestoreDataConverter<Project.Core<
     }
     const pageContents = snapshot.get("pageContents")
     if (pageContents != null) {
-      project.pageContents = pageContents
+      project.pageContents = pageContentsFromFirestore(pageContents)
     }
     const downloads = snapshot.get("downloads")
     if (downloads != null) {

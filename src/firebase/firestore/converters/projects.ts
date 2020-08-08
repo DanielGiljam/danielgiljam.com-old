@@ -4,6 +4,8 @@ import {
   Timestamp,
 } from "@google-cloud/firestore"
 import moment from "moment"
+import remark from "remark"
+import remarkHTML from "remark-html"
 
 import Project from "../../../../types/data/Project"
 
@@ -26,6 +28,14 @@ const latestReleaseFromFirestore = ({
   timestamp: moment(timestamp.toDate()).toISOString(),
   ...latestRelease,
 })
+
+const pageContentsFromFirestore = (
+  pageContents: Project.PageContents,
+): Project.PageContents =>
+  remark()
+    .use(remarkHTML)
+    .processSync(pageContents ?? "")
+    .toString()
 
 const sourcesFromFirestore = (
   sources: Project.MetaData.Sources<Timestamp>,
@@ -85,7 +95,7 @@ export const projectsConverterCore: FirestoreDataConverter<Project.Core<
     }
     const pageContents = snapshot.get("pageContents")
     if (pageContents != null) {
-      project.pageContents = pageContents
+      project.pageContents = pageContentsFromFirestore(pageContents)
     }
     const downloads = snapshot.get("downloads")
     if (downloads != null) {

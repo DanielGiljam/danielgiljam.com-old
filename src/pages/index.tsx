@@ -15,13 +15,10 @@ export const getStaticProps: GetStaticProps<ProjectListProps> = async () => ({
   },
 })
 
-const Index = ({projects}: ProjectListProps): JSX.Element => {
-  console.log("projects:", projects)
-  return (
-    <div>
-      <ProjectList projects={projects} />
-    </div>
-  )
-}
+const Index = ({projects}: ProjectListProps): JSX.Element => (
+  <div>
+    <ProjectList projects={projects} />
+  </div>
+)
 
 export default Index

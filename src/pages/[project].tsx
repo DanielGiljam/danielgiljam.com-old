@@ -52,7 +52,6 @@ const useStyles = makeStyles((theme) =>
 
 const ProjectPage = ({project}: ProjectPageProps): JSX.Element => {
   const styles = useStyles()
-  console.log("project:", project)
   return (
     <div className={styles.container}>
       <Typography align={"center"}>{project.name}</Typography>

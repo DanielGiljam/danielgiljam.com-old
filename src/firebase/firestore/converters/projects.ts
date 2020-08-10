@@ -37,7 +37,9 @@ const latestReleaseFromFirestore = ({
 const pageContentsFromFirestore = (
   pageContents: Project.PageContents,
 ): Project.PageContents => {
-  const jsx = sync(pageContents, {skipExport: true})
+  const jsx = sync(pageContents.replace(/<br>/g, "<br/>"), {
+    skipExport: true,
+  })
   const code = transform(jsx, {plugins: ["@babel/plugin-transform-react-jsx"]})
     .code
   const scope = {mdx: createElement}

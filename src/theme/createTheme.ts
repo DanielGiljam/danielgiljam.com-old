@@ -3,8 +3,9 @@ import {
   createMuiTheme,
   responsiveFontSizes,
 } from "@material-ui/core/styles"
+import color from "color"
 
-import {breakpoint, maxHeight} from "./constants"
+import {breakpoint, defaultSpacing, maxHeight} from "./constants"
 
 const createTheme = (): Theme => {
   const theme = responsiveFontSizes(createMuiTheme({palette: {type: "dark"}}))
@@ -47,6 +48,53 @@ const createTheme = (): Theme => {
           [theme.breakpoints.up(breakpoint)]: {
             borderRadius: theme.shape.borderRadius,
             flexGrow: "unset",
+          },
+        },
+        code: {
+          fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+          "&:not(.prism-code)": {
+            display: "inline-block",
+            backgroundColor: color(theme.palette.info.dark)
+              .fade(0.75)
+              .toString(),
+            borderRadius: theme.shape.borderRadius,
+            fontSize: "0.875em",
+            paddingLeft: "0.25ch",
+            paddingRight: "0.25ch",
+          },
+        },
+        pre: {
+          fontSize: "1rem",
+        },
+        ".prism-code": {
+          display: "block",
+          fontSize: "0.625rem",
+          overflow: "scroll",
+          "& > span": {
+            backgroundColor: "inherit",
+            display: "table-row",
+            "& > span": {
+              backgroundColor: "inherit",
+              display: "table-cell",
+              "&:first-child:not(:last-child)": {
+                color: theme.palette.text.hint,
+                left: 0,
+                paddingLeft: defaultSpacing(theme),
+                paddingRight: defaultSpacing(theme),
+                position: "sticky",
+                textAlign: "right",
+                userSelect: "none",
+              },
+            },
+            "&:last-child": {
+              display: "none",
+            },
+          },
+        },
+        ".mdx-link": {
+          "&:hover": {
+            backgroundColor: theme.palette.text.primary,
+            color: theme.palette.getContrastText(theme.palette.text.primary),
           },
         },
       },

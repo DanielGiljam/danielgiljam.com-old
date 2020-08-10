@@ -3,15 +3,10 @@ import Link from "@material-ui/core/Link"
 import Typography from "@material-ui/core/Typography"
 import {Components} from "@mdx-js/react"
 
+import CodeBlock from "../components/CodeBlock"
+
 const components: Components = {
-  a: ({children, ...props}) => {
-    return (
-      <Link color={"textPrimary"} underline={"always"} {...props}>
-        {children}
-      </Link>
-    )
-  },
-  // TODO: add "blockquote", "code", "delete", "em"
+  // TODO: add auto-link headings plugin
   h1: ({children, ...props}) => {
     console.log("h1 props:", props)
     return <Typography variant={"h1"}>{children}</Typography>
@@ -36,16 +31,39 @@ const components: Components = {
     console.log("h6 props:", props)
     return <Typography variant={"h6"}>{children}</Typography>
   },
-  hr: (props) => {
-    console.log("hr props:", props)
-    return <Divider />
-  },
-  // TODO: add "img", "inlineCode", "li", "ol"
   p: ({children, ...props}) => {
     console.log("p props:", props)
     return <Typography>{children}</Typography>
   },
-  // TODO: add "pre", "strong", "sup", "table", "td", "thematicBreak", "tr", "ul"
+  a: ({children, ...props}) => {
+    console.log("a props:", props)
+    return (
+      <Link
+        className={"mdx-link"}
+        color={"textPrimary"}
+        underline={"always"}
+        {...props}>
+        {children}
+      </Link>
+    )
+  },
+  ul: ({children, ...props}) => {
+    console.log("ul props:", props)
+    return <Typography component={"ul"}>{children}</Typography>
+  },
+  hr: (props) => {
+    console.log("hr props:", props)
+    return <Divider />
+  },
+  thematicBreak: (props) => {
+    console.log("thematicBreak props:", props)
+    return <Divider />
+  },
+  code: ({children, ...props}) => {
+    console.log("code props:", props)
+    return <CodeBlock {...props}>{children}</CodeBlock>
+  },
+  // TODO: add "table", "td", "tr", "img" and "blockquote"
 }
 
 export default components

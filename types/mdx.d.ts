@@ -1,5 +1,7 @@
 declare module "@mdx-js/mdx" {
+  const mdx: (mdx: string, opts?: {skipExport?: boolean}) => Promise<string>
   export const sync: (mdx: string, opts?: {skipExport?: boolean}) => string
+  export default mdx
 }
 
 /** Inspired by the code sample at https://mdxjs.com/advanced/typescript */

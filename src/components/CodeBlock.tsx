@@ -38,7 +38,11 @@ const CodeBlock = ({children, ...props}: CodeBlockProps): JSX.Element => {
       </Highlight>
     )
   } else {
-    return <>{children}</>
+    return (
+      <code style={{backgroundColor: theme.plain.backgroundColor}}>
+        {children}
+      </code>
+    )
   }
 }
 

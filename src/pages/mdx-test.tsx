@@ -2,6 +2,7 @@ import {promises as fs} from "fs"
 import {resolve} from "path"
 
 import {transform} from "@babel/core"
+import Divider from "@material-ui/core/Divider"
 import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import mdx from "@mdx-js/mdx"
@@ -52,8 +53,11 @@ export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
 
 const useStyles = makeStyles((theme) =>
   createStyles({
-    container: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+    h1: {
+      marginBottom: defaultSpacing(theme) / 2,
+      marginTop: defaultSpacing(theme),
+      marginLeft: defaultSpacing(theme),
+      marginRight: defaultSpacing(theme),
     },
   }),
 )
@@ -61,9 +65,12 @@ const useStyles = makeStyles((theme) =>
 const MDXTestPage = ({mdxTest}: MDXTestPageProps): JSX.Element => {
   const styles = useStyles()
   return (
-    <div className={styles.container}>
-      <Typography variant={"h1"}>MDX Test</Typography>
-      <div dangerouslySetInnerHTML={{__html: mdxTest}} />
+    <div>
+      <Typography className={styles.h1} component={"h1"} variant={"h2"}>
+        MDX Test
+      </Typography>
+      <Divider />
+      <div dangerouslySetInnerHTML={{__html: mdxTest}} id={"__mdx"} />
     </div>
   )
 }

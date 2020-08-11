@@ -44,8 +44,11 @@ export const getStaticPaths: GetStaticPaths = async () => ({
 
 const useStyles = makeStyles((theme) =>
   createStyles({
-    container: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+    h1: {
+      marginBottom: defaultSpacing(theme) / 2,
+      marginTop: defaultSpacing(theme),
+      marginLeft: defaultSpacing(theme),
+      marginRight: defaultSpacing(theme),
     },
   }),
 )
@@ -53,9 +56,14 @@ const useStyles = makeStyles((theme) =>
 const ProjectPage = ({project}: ProjectPageProps): JSX.Element => {
   const styles = useStyles()
   return (
-    <div className={styles.container}>
-      <Typography variant={"h1"}>{project.name}</Typography>
-      <div dangerouslySetInnerHTML={{__html: project.pageContents ?? ""}} />
+    <div>
+      <Typography className={styles.h1} component={"h1"} variant={"h2"}>
+        {project.name}
+      </Typography>
+      <div
+        dangerouslySetInnerHTML={{__html: project.pageContents ?? ""}}
+        id={"__mdx"}
+      />
     </div>
   )
 }

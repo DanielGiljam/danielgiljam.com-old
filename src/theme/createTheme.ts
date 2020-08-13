@@ -4,10 +4,7 @@ import {
   responsiveFontSizes,
 } from "@material-ui/core/styles"
 
-import {breakpoint, defaultSpacing, maxHeight} from "./constants"
-
-// TODO: fix the abuse of "defaultSpacing"
-// TODO: replace "margin-top", "padding-left", etc. with "margin-block-start", "padding-inline-start", etc.
+import {breakpoint, maxHeight} from "./constants"
 
 const createTheme = (): Theme => {
   const theme = responsiveFontSizes(
@@ -61,23 +58,23 @@ const createTheme = (): Theme => {
           },
         },
         "#__mdx": {
-          marginLeft: defaultSpacing(theme),
-          marginRight: defaultSpacing(theme),
-          marginTop: defaultSpacing(theme),
-          paddingBottom: defaultSpacing(theme),
+          marginBlockStart: `${theme.spacing(1)}px`,
+          marginInlineStart: `${theme.spacing(1)}px`,
+          marginInlineEnd: `${theme.spacing(1)}px`,
+          paddingBlockEnd: `${theme.spacing(1)}px`,
           "& h1, & h2, & h3, & h4": {
-            marginBottom: defaultSpacing(theme) / 2,
-            marginTop: defaultSpacing(theme) * 2,
+            marginBlockStart: `${theme.spacing(2)}px`,
+            marginBlockEnd: `${theme.spacing(0.5)}px`,
           },
           "& h5, & h6": {
-            marginTop: defaultSpacing(theme),
+            marginBlockStart: `${theme.spacing(1)}px`,
           },
           "& p + p": {
-            marginTop: defaultSpacing(theme) / 2,
+            marginBlockStart: `${theme.spacing(2)}px`,
           },
           "& ol": {
-            marginBottom: defaultSpacing(theme),
-            marginTop: defaultSpacing(theme),
+            marginBlockStart: `${theme.spacing(1)}px`,
+            marginBlockEnd: `${theme.spacing(1)}px`,
           },
           "& a": {
             "&:hover": {
@@ -86,22 +83,22 @@ const createTheme = (): Theme => {
             },
           },
           "& hr": {
-            marginBottom: defaultSpacing(theme) * 3,
-            marginTop: defaultSpacing(theme) * 3,
+            marginBlockStart: `${theme.spacing(3)}px`,
+            marginBlockEnd: `${theme.spacing(3)}px`,
           },
           "& table": {
-            marginBottom: defaultSpacing(theme),
+            marginBlockEnd: `${theme.spacing(1)}px`,
           },
           "& img": {
             display: "block",
-            marginBottom: defaultSpacing(theme) / 2,
-            marginTop: defaultSpacing(theme) / 2,
+            marginBlockStart: `${theme.spacing(0.5)}px`,
+            marginBlockEnd: `${theme.spacing(0.5)}px`,
             width: "100%",
           },
           "& > p > img": {
-            marginLeft: -defaultSpacing(theme),
-            marginRight: -defaultSpacing(theme),
-            width: `calc(100% + ${defaultSpacing(theme) * 2}px)`,
+            marginInlineStart: `-${theme.spacing(1)}px`,
+            marginInlineEnd: `-${theme.spacing(1)}px`,
+            width: `calc(100% + ${theme.spacing(2)}px)`,
           },
           "& code": {
             fontFamily: "Menlo, Monaco, 'Courier New', monospace",
@@ -110,18 +107,18 @@ const createTheme = (): Theme => {
             },
           },
           "& pre": {
-            marginBottom: defaultSpacing(theme) / 2,
-            marginTop: defaultSpacing(theme) / 2,
+            marginBlockStart: `${theme.spacing(2)}px`,
+            marginBlockEnd: `${theme.spacing(2)}px`,
             overflow: "hidden",
             "& > code": {
               display: "block",
               fontSize: "0.625rem",
               overflow: "scroll",
-              paddingTop: defaultSpacing(theme),
-              paddingBottom: defaultSpacing(theme),
-              paddingRight: defaultSpacing(theme),
+              paddingBlockStart: `${theme.spacing(1)}px`,
+              paddingBlockEnd: `${theme.spacing(1)}px`,
+              paddingInlineEnd: `${theme.spacing(1)}px`,
               "&.language-bash, &:not(.prism-code)": {
-                paddingLeft: defaultSpacing(theme),
+                paddingInlineStart: `${theme.spacing(1)}px`,
               },
               "& > span": {
                 backgroundColor: "inherit",
@@ -132,8 +129,8 @@ const createTheme = (): Theme => {
                   "&:first-child:not(:last-child)": {
                     color: theme.palette.text.hint,
                     left: 0,
-                    paddingLeft: defaultSpacing(theme),
-                    paddingRight: defaultSpacing(theme),
+                    paddingInlineStart: `${theme.spacing(1)}px`,
+                    paddingInlineEnd: `${theme.spacing(1)}px`,
                     position: "sticky",
                     textAlign: "right",
                     userSelect: "none",
@@ -146,7 +143,7 @@ const createTheme = (): Theme => {
             },
           },
           "& > :last-child": {
-            marginBottom: "unset",
+            marginBlockEnd: "unset",
           },
         },
       },

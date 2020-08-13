@@ -1,18 +1,16 @@
 import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 
-import {defaultSpacing} from "../theme/constants"
-
 const useStyles = makeStyles((theme) =>
   createStyles({
     container: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+      padding: `${theme.spacing(2)}px ${theme.spacing(1)}px`,
       alignItems: "center",
       display: "flex",
       justifyContent: "center",
     },
     main: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+      padding: `${theme.spacing(2)}px ${theme.spacing(1)}px`,
       alignItems: "center",
       display: "flex",
       justifyContent: "center",
@@ -21,8 +19,8 @@ const useStyles = makeStyles((theme) =>
       borderInlineEnd: `thin solid ${theme.palette.divider}`,
       fontWeight: 100,
       lineHeight: 0.833, // 1 - (1.167 - 1), "1.167" is the default line height for h1's in MUI
-      marginInlineEnd: defaultSpacing(theme).toString() + "px",
-      paddingInlineEnd: defaultSpacing(theme).toString() + "px",
+      marginInlineEnd: `${theme.spacing(1)}px`,
+      paddingInlineEnd: `${theme.spacing(1)}px`,
     },
   }),
 )

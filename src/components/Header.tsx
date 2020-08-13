@@ -4,7 +4,6 @@ import NextLink from "next/link"
 
 // @ts-expect-error webpack + svg-inline-loader takes care of importing the SVG file
 import danielgiljam from "../../assets/danielgiljam.svg"
-import {defaultSpacing} from "../theme/constants"
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -13,7 +12,7 @@ const useStyles = makeStyles((theme) =>
       "& > span": {
         display: "block",
         "& > svg": {
-          margin: defaultSpacing(theme),
+          margin: theme.spacing(1),
           fill: theme.palette.text.primary,
         },
       },

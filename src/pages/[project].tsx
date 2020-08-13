@@ -6,7 +6,6 @@ import Head from "next/head"
 import Project from "../../types/data/Project"
 import {projectsConverterCore} from "../firebase/firestore/converters/projects"
 import initializeAdminSDK from "../firebase/initializeAdminSDK"
-import {defaultSpacing} from "../theme/constants"
 
 interface ProjectPageProps {
   project: Project.Core<string>
@@ -46,10 +45,10 @@ export const getStaticPaths: GetStaticPaths = async () => ({
 const useStyles = makeStyles((theme) =>
   createStyles({
     h1: {
-      marginBottom: defaultSpacing(theme) / 2,
-      marginLeft: defaultSpacing(theme),
-      marginRight: defaultSpacing(theme),
-      paddingTop: defaultSpacing(theme),
+      marginBlockEnd: `${theme.spacing(0.5)}px`,
+      marginInlineStart: `${theme.spacing(1)}px`,
+      marginInlineEnd: `${theme.spacing(1)}px`,
+      paddingBlockStart: `${theme.spacing(1)}px`,
     },
   }),
 )

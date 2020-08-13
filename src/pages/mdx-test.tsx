@@ -21,7 +21,6 @@ import postcss from "postcss"
 import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
 
-import {defaultSpacing} from "../theme/constants"
 import createTheme from "../theme/createTheme"
 import deleteStylesheets from "../theme/delete-stylesheets"
 import components from "../theme/mdx-components"
@@ -89,10 +88,10 @@ export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
 const useStyles = makeStyles((theme) =>
   createStyles({
     h1: {
-      marginBottom: defaultSpacing(theme) / 2,
-      marginLeft: defaultSpacing(theme),
-      marginRight: defaultSpacing(theme),
-      paddingTop: defaultSpacing(theme),
+      marginBlockEnd: `${theme.spacing(0.5)}px`,
+      marginInlineStart: `${theme.spacing(1)}px`,
+      marginInlineEnd: `${theme.spacing(1)}px`,
+      paddingBlockStart: `${theme.spacing(1)}px`,
     },
   }),
 )

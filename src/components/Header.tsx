@@ -10,10 +10,11 @@ const useStyles = makeStyles((theme) =>
     link: {
       display: "block",
       "& > span": {
-        display: "block",
+        display: "inherit",
         "& > svg": {
-          margin: theme.spacing(1),
+          display: "inherit",
           fill: theme.palette.text.primary,
+          margin: theme.spacing(1),
         },
       },
     },

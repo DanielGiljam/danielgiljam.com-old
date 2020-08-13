@@ -11,6 +11,7 @@ const createTheme = (): Theme => {
     createMuiTheme({
       palette: {type: "dark"},
       typography: {
+        h2: {fontSize: "4.875rem"},
         subtitle1: {fontSize: "1.1875rem"},
         subtitle2: {fontSize: "1.125rem"},
       },
@@ -62,6 +63,9 @@ const createTheme = (): Theme => {
           marginInlineStart: `${theme.spacing(1)}px`,
           marginInlineEnd: `${theme.spacing(1)}px`,
           paddingBlockEnd: `${theme.spacing(1)}px`,
+          "& p + p": {
+            marginBlockStart: `${theme.spacing(2)}px`,
+          },
           "& h1, & h2, & h3, & h4": {
             marginBlockStart: `${theme.spacing(2)}px`,
             marginBlockEnd: `${theme.spacing(0.5)}px`,
@@ -69,25 +73,64 @@ const createTheme = (): Theme => {
           "& h5, & h6": {
             marginBlockStart: `${theme.spacing(1)}px`,
           },
-          "& p + p": {
-            marginBlockStart: `${theme.spacing(2)}px`,
-          },
-          "& ol": {
+          "& blockquote, & ul, & ol": {
             marginBlockStart: `${theme.spacing(1)}px`,
             marginBlockEnd: `${theme.spacing(1)}px`,
+          },
+          "& table": {
+            marginBlockEnd: `${theme.spacing(1)}px`,
+          },
+          "& pre": {
+            marginBlockStart: `${theme.spacing(1)}px`,
+            marginBlockEnd: `${theme.spacing(1)}px`,
+            overflow: "hidden",
+            "& > code": {
+              display: "block",
+              fontSize: "0.625rem",
+              overflow: "scroll",
+              paddingBlockStart: `${theme.spacing(1)}px`,
+              paddingBlockEnd: `${theme.spacing(1)}px`,
+              "&.language-bash, &:not(.prism-code)": {
+                paddingInlineStart: `${theme.spacing(1)}px`,
+                paddingInlineEnd: `${theme.spacing(1)}px`,
+              },
+              "& > span": {
+                backgroundColor: "inherit",
+                display: "table-row",
+                "& > span": {
+                  backgroundColor: "inherit",
+                  display: "table-cell",
+                  paddingInlineEnd: `${theme.spacing(1)}px`,
+                  "&:first-child:not(:last-child)": {
+                    color: theme.palette.text.hint,
+                    left: 0,
+                    paddingInlineStart: `${theme.spacing(1)}px`,
+                    position: "sticky",
+                    textAlign: "right",
+                    userSelect: "none",
+                  },
+                },
+                "&:last-child": {
+                  display: "none",
+                },
+              },
+            },
+          },
+          "& code": {
+            fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+            "&:not(.prism-code)": {
+              fontSize: "0.875em",
+            },
+          },
+          "& hr": {
+            marginBlockStart: `${theme.spacing(2)}px`,
+            marginBlockEnd: `${theme.spacing(2)}px`,
           },
           "& a": {
             "&:hover": {
               backgroundColor: theme.palette.text.primary,
               color: theme.palette.getContrastText(theme.palette.text.primary),
             },
-          },
-          "& hr": {
-            marginBlockStart: `${theme.spacing(3)}px`,
-            marginBlockEnd: `${theme.spacing(3)}px`,
-          },
-          "& table": {
-            marginBlockEnd: `${theme.spacing(1)}px`,
           },
           "& img": {
             display: "block",
@@ -99,48 +142,6 @@ const createTheme = (): Theme => {
             marginInlineStart: `-${theme.spacing(1)}px`,
             marginInlineEnd: `-${theme.spacing(1)}px`,
             width: `calc(100% + ${theme.spacing(2)}px)`,
-          },
-          "& code": {
-            fontFamily: "Menlo, Monaco, 'Courier New', monospace",
-            "&:not(.prism-code)": {
-              fontSize: "0.875em",
-            },
-          },
-          "& pre": {
-            marginBlockStart: `${theme.spacing(2)}px`,
-            marginBlockEnd: `${theme.spacing(2)}px`,
-            overflow: "hidden",
-            "& > code": {
-              display: "block",
-              fontSize: "0.625rem",
-              overflow: "scroll",
-              paddingBlockStart: `${theme.spacing(1)}px`,
-              paddingBlockEnd: `${theme.spacing(1)}px`,
-              paddingInlineEnd: `${theme.spacing(1)}px`,
-              "&.language-bash, &:not(.prism-code)": {
-                paddingInlineStart: `${theme.spacing(1)}px`,
-              },
-              "& > span": {
-                backgroundColor: "inherit",
-                display: "table-row",
-                "& > span": {
-                  backgroundColor: "inherit",
-                  display: "table-cell",
-                  "&:first-child:not(:last-child)": {
-                    color: theme.palette.text.hint,
-                    left: 0,
-                    paddingInlineStart: `${theme.spacing(1)}px`,
-                    paddingInlineEnd: `${theme.spacing(1)}px`,
-                    position: "sticky",
-                    textAlign: "right",
-                    userSelect: "none",
-                  },
-                },
-                "&:last-child": {
-                  display: "none",
-                },
-              },
-            },
           },
           "& > :last-child": {
             marginBlockEnd: "unset",

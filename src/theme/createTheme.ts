@@ -66,6 +66,24 @@ const createTheme = (): Theme => {
           "& p + p": {
             marginBlockStart: `${theme.spacing(2)}px`,
           },
+          "& h1, & h2, & h3, & h4, & h5, & h6": {
+            "& > a": {
+              paddingInlineStart: `${theme.spacing(1)}px`,
+              "& > svg": {
+                color: theme.palette.text.secondary,
+                visibility: "hidden",
+              },
+              "&:hover": {
+                backgroundColor: "unset",
+                "& > svg": {
+                  color: theme.palette.text.primary,
+                },
+              },
+            },
+            "&:hover > a > svg": {
+              visibility: "visible",
+            },
+          },
           "& h1, & h2, & h3, & h4": {
             marginBlockStart: `${theme.spacing(2)}px`,
             marginBlockEnd: `${theme.spacing(0.5)}px`,

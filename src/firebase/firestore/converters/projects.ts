@@ -17,6 +17,7 @@ import moment from "moment"
 import postcss from "postcss"
 import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
+import remarkSlug from "remark-slug"
 
 import Project from "../../../../types/data/Project"
 import createTheme from "../../../theme/createTheme"
@@ -57,6 +58,7 @@ const pageContentsFromFirestore = (
   )
   const jsx = sync(pageContentsSanitizedPass1, {
     skipExport: true,
+    remarkPlugins: [remarkSlug],
   })
   const code = transform(jsx, {plugins: ["@babel/plugin-transform-react-jsx"]})
     .code

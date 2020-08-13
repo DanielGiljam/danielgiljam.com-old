@@ -11,39 +11,39 @@ import Typography from "@material-ui/core/Typography"
 import {Components} from "@mdx-js/react"
 
 import CodeBlock from "../components/CodeBlock"
+import Heading from "../components/Heading"
 
 const components: Components = {
-  // TODO: add auto-link headings plugin
   p: ({children}) => <Typography>{children}</Typography>,
-  h1: ({children}) => (
-    <Typography component={"h1"} variant={"h2"}>
+  h1: ({children, ...props}) => (
+    <Heading variant={"h2"} {...props}>
       {children}
-    </Typography>
+    </Heading>
   ),
-  h2: ({children}) => (
-    <Typography component={"h2"} variant={"h3"}>
+  h2: ({children, ...props}) => (
+    <Heading variant={"h3"} {...props}>
       {children}
-    </Typography>
+    </Heading>
   ),
-  h3: ({children}) => (
-    <Typography component={"h3"} variant={"h4"}>
+  h3: ({children, ...props}) => (
+    <Heading variant={"h4"} {...props}>
       {children}
-    </Typography>
+    </Heading>
   ),
-  h4: ({children}) => (
-    <Typography component={"h4"} variant={"h5"}>
+  h4: ({children, ...props}) => (
+    <Heading variant={"h5"} {...props}>
       {children}
-    </Typography>
+    </Heading>
   ),
-  h5: ({children}) => (
-    <Typography component={"h5"} variant={"h6"}>
+  h5: ({children, ...props}) => (
+    <Heading variant={"h6"} {...props}>
       {children}
-    </Typography>
+    </Heading>
   ),
-  h6: ({children}) => (
-    <Typography component={"h6"} variant={"subtitle1"}>
+  h6: ({children, ...props}) => (
+    <Heading variant={"subtitle1"} {...props}>
       {children}
-    </Typography>
+    </Heading>
   ),
   thematicBreak: () => <Divider variant={"middle"} />,
   ul: ({children}) => <Typography component={"ul"}>{children}</Typography>,

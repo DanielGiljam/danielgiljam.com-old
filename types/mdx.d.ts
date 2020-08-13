@@ -1,6 +1,10 @@
 declare module "@mdx-js/mdx" {
-  const mdx: (mdx: string, opts?: {skipExport?: boolean}) => Promise<string>
-  export const sync: (mdx: string, opts?: {skipExport?: boolean}) => string
+  interface MDXOptions {
+    skipExport?: boolean
+    remarkPlugins?: any[]
+  }
+  const mdx: (mdx: string, opts?: MDXOptions) => Promise<string>
+  export const sync: (mdx: string, opts?: MDXOptions) => string
   export default mdx
 }
 

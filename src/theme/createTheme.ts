@@ -61,10 +61,10 @@ const createTheme = (): Theme => {
           },
         },
         "#__mdx": {
-          marginBottom: defaultSpacing(theme),
-          marginTop: defaultSpacing(theme),
           marginLeft: defaultSpacing(theme),
           marginRight: defaultSpacing(theme),
+          marginTop: defaultSpacing(theme),
+          paddingBottom: defaultSpacing(theme),
           "& h1, & h2, & h3, & h4": {
             marginBottom: defaultSpacing(theme) / 2,
             marginTop: defaultSpacing(theme) * 2,
@@ -144,6 +144,9 @@ const createTheme = (): Theme => {
                 },
               },
             },
+          },
+          "& > :last-child": {
+            marginBottom: "unset",
           },
         },
       },

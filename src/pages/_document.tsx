@@ -1,4 +1,5 @@
 import {ServerStyleSheets} from "@material-ui/core/styles"
+import {MinifierOutput} from "clean-css"
 import _document, {
   DocumentContext,
   DocumentInitialProps,
@@ -7,9 +8,25 @@ import _document, {
   Main,
   NextScript,
 } from "next/document"
+import {Processor} from "postcss"
 import React from "react"
 
-import createTheme from "../theme/createTheme"
+/**
+ * CSS minification/post-processing is heavily inspired by
+ * how its done for the Material-UI docs site.
+ * https://github.com/mui-org/material-ui/blob/next/docs/pages/_document.js
+ */
+let prefixer: Processor
+let cleanCSS: MinifierOutput
+if (process.env.NODE_ENV === "production") {
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  const postcss = require("postcss")
+  const autoprefixer = require("autoprefixer")
+  const CleanCSS = require("clean-css")
+  /* eslint-enable @typescript-eslint/no-var-requires */
+  prefixer = postcss([autoprefixer])
+  cleanCSS = new CleanCSS()
+}
 
 class Document extends _document {
   render(): JSX.Element {
@@ -17,10 +34,7 @@ class Document extends _document {
       <Html lang={"en"}>
         <Head>
           {/* PWA primary color */}
-          <meta
-            content={createTheme().palette.primary.main}
-            name={"theme-color"}
-          />
+          <meta content={"#303030"} name={"theme-color"} />
         </Head>
         <body>
           <Main />
@@ -68,12 +82,26 @@ class Document extends _document {
 
     const initialProps = await _document.getInitialProps(ctx)
 
+    let css = sheets.toString()
+    if (
+      css != null &&
+      css.length !== 0 &&
+      process.env.NODE_ENV === "production"
+    ) {
+      const processedCSSPass1 = await prefixer.process(css)
+      css = cleanCSS.minify(processedCSSPass1.css).styles
+    }
+
     return {
       ...initialProps,
       // Styles fragment is rendered after the app and page rendering finish.
       styles: [
         ...React.Children.toArray(initialProps.styles),
-        sheets.getStyleElement(),
+        <style
+          key={"jss-server-side"}
+          dangerouslySetInnerHTML={{__html: css}}
+          id={"jss-server-side"}
+        />,
       ],
     }
   }

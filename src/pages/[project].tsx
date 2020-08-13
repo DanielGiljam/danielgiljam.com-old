@@ -47,9 +47,9 @@ const useStyles = makeStyles((theme) =>
   createStyles({
     h1: {
       marginBottom: defaultSpacing(theme) / 2,
-      marginTop: defaultSpacing(theme),
       marginLeft: defaultSpacing(theme),
       marginRight: defaultSpacing(theme),
+      paddingTop: defaultSpacing(theme),
     },
   }),
 )

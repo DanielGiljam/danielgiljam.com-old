@@ -13,8 +13,11 @@ import {
 } from "@material-ui/core/styles"
 import mdx from "@mdx-js/mdx"
 import {MDXProvider, mdx as createElement} from "@mdx-js/react"
+import autoprefixer from "autoprefixer"
+import CleanCSS from "clean-css"
 import {GetStaticProps} from "next"
 import Head from "next/head"
+import postcss from "postcss"
 import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
 
@@ -26,6 +29,10 @@ import components from "../theme/mdx-components"
 interface MDXTestPageProps {
   mdxTest: {html: string; css: string}
 }
+
+const theme = createTheme()
+const prefixer = postcss([autoprefixer])
+const cleanCSS = new CleanCSS()
 
 export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
   context,
@@ -58,13 +65,17 @@ export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
   )
   const elementWithProvider2 = React.createElement(
     ThemeProvider,
-    ({theme: createTheme()} as unknown) as ThemeProviderProps,
+    ({theme} as unknown) as ThemeProviderProps,
     elementWithProvider1,
   )
   const sheets = new ServerStyleSheets()
   const html = renderToStaticMarkup(sheets.collect(elementWithProvider2))
   deleteStylesheets(sheets)
-  const css = sheets.toString()
+  let css = sheets.toString()
+  if (css != null && css.length !== 0) {
+    const processedCSSPass1 = prefixer.process(css).css
+    css = cleanCSS.minify(processedCSSPass1).styles
+  }
   return {
     props: {
       mdxTest: {
@@ -79,9 +90,9 @@ const useStyles = makeStyles((theme) =>
   createStyles({
     h1: {
       marginBottom: defaultSpacing(theme) / 2,
-      marginTop: defaultSpacing(theme),
       marginLeft: defaultSpacing(theme),
       marginRight: defaultSpacing(theme),
+      paddingTop: defaultSpacing(theme),
     },
   }),
 )

@@ -11,13 +11,21 @@ import {
 } from "@material-ui/core/styles"
 import {sync} from "@mdx-js/mdx"
 import {MDXProvider, mdx as createElement} from "@mdx-js/react"
+import autoprefixer from "autoprefixer"
+import CleanCSS from "clean-css"
 import moment from "moment"
+import postcss from "postcss"
 import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
 
 import Project from "../../../../types/data/Project"
 import createTheme from "../../../theme/createTheme"
+import deleteStylesheets from "../../../theme/delete-stylesheets"
 import components from "../../../theme/mdx-components"
+
+const theme = createTheme()
+const prefixer = postcss([autoprefixer])
+const cleanCSS = new CleanCSS()
 
 const lifespanFromFirestore = (
   lifespan: Project.Lifespan<Timestamp>,
@@ -67,12 +75,17 @@ const pageContentsFromFirestore = (
   )
   const elementWithProvider2 = React.createElement(
     ThemeProvider,
-    ({theme: createTheme()} as unknown) as ThemeProviderProps,
+    ({theme} as unknown) as ThemeProviderProps,
     elementWithProvider1,
   )
   const sheets = new ServerStyleSheets()
   const html = renderToStaticMarkup(sheets.collect(elementWithProvider2))
-  const css = sheets.toString()
+  deleteStylesheets(sheets)
+  let css = sheets.toString()
+  if (css != null && css.length !== 0) {
+    const processedCSSPass1 = prefixer.process(css).css
+    css = cleanCSS.minify(processedCSSPass1).styles
+  }
   return {html, css}
 }
 

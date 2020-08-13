@@ -4,18 +4,27 @@ import {resolve} from "path"
 import {transform} from "@babel/core"
 import Divider from "@material-ui/core/Divider"
 import Typography from "@material-ui/core/Typography"
-import {createStyles, makeStyles} from "@material-ui/core/styles"
+import {
+  ServerStyleSheets,
+  ThemeProvider,
+  ThemeProviderProps,
+  createStyles,
+  makeStyles,
+} from "@material-ui/core/styles"
 import mdx from "@mdx-js/mdx"
 import {MDXProvider, mdx as createElement} from "@mdx-js/react"
 import {GetStaticProps} from "next"
+import Head from "next/head"
 import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
 
 import {defaultSpacing} from "../theme/constants"
+import createTheme from "../theme/createTheme"
+import deleteStylesheets from "../theme/delete-stylesheets"
 import components from "../theme/mdx-components"
 
 interface MDXTestPageProps {
-  mdxTest: string
+  mdxTest: {html: string; css: string}
 }
 
 export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
@@ -42,13 +51,28 @@ export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
     `${code}; return React.createElement(MDXContent)`,
   )
   const element = fn(React, ...Object.values(scope))
-  const elementWithProvider = React.createElement(
+  const elementWithProvider1 = React.createElement(
     MDXProvider,
     {components},
     element,
   )
-  const mdxTest = renderToStaticMarkup(elementWithProvider)
-  return {props: {mdxTest}}
+  const elementWithProvider2 = React.createElement(
+    ThemeProvider,
+    ({theme: createTheme()} as unknown) as ThemeProviderProps,
+    elementWithProvider1,
+  )
+  const sheets = new ServerStyleSheets()
+  const html = renderToStaticMarkup(sheets.collect(elementWithProvider2))
+  deleteStylesheets(sheets)
+  const css = sheets.toString()
+  return {
+    props: {
+      mdxTest: {
+        html,
+        css,
+      },
+    },
+  }
 }
 
 const useStyles = makeStyles((theme) =>
@@ -66,11 +90,19 @@ const MDXTestPage = ({mdxTest}: MDXTestPageProps): JSX.Element => {
   const styles = useStyles()
   return (
     <div>
+      <Head>
+        <title key={"title"}>MDX Test | Daniel Giljam</title>
+        <style
+          key={"jss-server-side-2"}
+          dangerouslySetInnerHTML={{__html: mdxTest.css}}
+          id={"jss-server-side-2"}
+        />
+      </Head>
       <Typography className={styles.h1} component={"h1"} variant={"h2"}>
         MDX Test
       </Typography>
       <Divider />
-      <div dangerouslySetInnerHTML={{__html: mdxTest}} id={"__mdx"} />
+      <div dangerouslySetInnerHTML={{__html: mdxTest.html}} id={"__mdx"} />
     </div>
   )
 }

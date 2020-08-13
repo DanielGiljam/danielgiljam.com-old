@@ -4,6 +4,11 @@ import {
   QueryDocumentSnapshot,
   Timestamp,
 } from "@google-cloud/firestore"
+import {
+  ServerStyleSheets,
+  ThemeProvider,
+  ThemeProviderProps,
+} from "@material-ui/core/styles"
 import {sync} from "@mdx-js/mdx"
 import {MDXProvider, mdx as createElement} from "@mdx-js/react"
 import moment from "moment"
@@ -11,6 +16,7 @@ import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
 
 import Project from "../../../../types/data/Project"
+import createTheme from "../../../theme/createTheme"
 import components from "../../../theme/mdx-components"
 
 const lifespanFromFirestore = (
@@ -37,25 +43,37 @@ const latestReleaseFromFirestore = ({
 const pageContentsFromFirestore = (
   pageContents: Project.PageContents,
 ): Project.PageContents => {
-  const jsx = sync(pageContents.replace(/<br>/g, "<br/>"), {
+  const pageContentsSanitizedPass1 = (pageContents as string).replace(
+    /<br>/g,
+    "<br/>",
+  )
+  const jsx = sync(pageContentsSanitizedPass1, {
     skipExport: true,
   })
   const code = transform(jsx, {plugins: ["@babel/plugin-transform-react-jsx"]})
     .code
   const scope = {mdx: createElement}
   // eslint-disable-next-line
-  const fn = new Function(
+  const func = new Function(
     "React",
     ...Object.keys(scope),
     `${code}; return React.createElement(MDXContent)`,
   )
-  const element = fn(React, ...Object.values(scope))
-  const elementWithProvider = React.createElement(
+  const element = func(React, ...Object.values(scope))
+  const elementWithProvider1 = React.createElement(
     MDXProvider,
     {components},
     element,
   )
-  return renderToStaticMarkup(elementWithProvider)
+  const elementWithProvider2 = React.createElement(
+    ThemeProvider,
+    ({theme: createTheme()} as unknown) as ThemeProviderProps,
+    elementWithProvider1,
+  )
+  const sheets = new ServerStyleSheets()
+  const html = renderToStaticMarkup(sheets.collect(elementWithProvider2))
+  const css = sheets.toString()
+  return {html, css}
 }
 
 const sourcesFromFirestore = (

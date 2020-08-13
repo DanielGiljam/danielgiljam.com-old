@@ -1,6 +1,7 @@
 import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import {GetStaticPaths, GetStaticProps} from "next"
+import Head from "next/head"
 
 import Project from "../../types/data/Project"
 import {projectsConverterCore} from "../firebase/firestore/converters/projects"
@@ -57,11 +58,27 @@ const ProjectPage = ({project}: ProjectPageProps): JSX.Element => {
   const styles = useStyles()
   return (
     <div>
+      <Head>
+        <title key={"title"}>{`${project.name} | Daniel Giljam`}</title>
+        <style
+          key={"jss-server-side-2"}
+          dangerouslySetInnerHTML={{
+            __html:
+              (project.pageContents as Exclude<Project.PageContents, string>)
+                ?.css ?? "",
+          }}
+          id={"jss-server-side-2"}
+        />
+      </Head>
       <Typography className={styles.h1} component={"h1"} variant={"h2"}>
         {project.name}
       </Typography>
       <div
-        dangerouslySetInnerHTML={{__html: project.pageContents ?? ""}}
+        dangerouslySetInnerHTML={{
+          __html:
+            (project.pageContents as Exclude<Project.PageContents, string>)
+              ?.html ?? "",
+        }}
         id={"__mdx"}
       />
     </div>

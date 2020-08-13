@@ -19,7 +19,6 @@ const createTheme = (): Theme => {
       },
     }),
   )
-  console.log(theme.typography)
   theme.overrides = {
     MuiCssBaseline: {
       "@global": {
@@ -89,6 +88,9 @@ const createTheme = (): Theme => {
           "& hr": {
             marginBottom: defaultSpacing(theme) * 3,
             marginTop: defaultSpacing(theme) * 3,
+          },
+          "& table": {
+            marginBottom: defaultSpacing(theme),
           },
           "& img": {
             display: "block",

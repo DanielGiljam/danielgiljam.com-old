@@ -1,5 +1,6 @@
 import {promises as fs} from "fs"
 import path from "path"
+import {URL} from "url"
 
 import chalk from "chalk"
 import {firestore} from "firebase-admin"
@@ -55,7 +56,10 @@ interface GitHubResponse {
       isPrerelease: boolean
     }>
   }
-  readme?: string
+  pageContents?: {
+    readme: string
+    url: string
+  }
 }
 
 interface NPMResponse {
@@ -160,7 +164,12 @@ const fetchGitHub = async (
   const readme = await fetch(...githubFetch2Endpoint(owner, name)).then(
     async (res) => await res.text(),
   )
-  githubResponse.readme = readme
+  if (readme != null && readme.length !== 0) {
+    githubResponse.pageContents = {
+      readme,
+      url: `https://raw.githubusercontent.com/${owner}/${name}/master/`,
+    }
+  }
   if (githubResponse.defaultBranchRef != null) {
     if (countLifespanAsStillOngoing ?? false) {
       githubResponse.defaultBranchRef.target.authoredDate = undefined
@@ -235,14 +244,16 @@ const throwFailedAcquisition = (
 const nameRegex = /(?<=^# ).*/
 const latestReleaseVersionRegex = /(?<=v?)\d\.\d\.\d/
 const pageContentsHeading1Matcher = /^# .*\n*/
+const pageContentsMDXBreakingBrTagMatcher = /<br>/g
+const pageContentsRelativeImageSourceMatcher = /(?<=!\[.*\]\()(?!https?:\/\/).*(?=\))/g
 
 const utcISO8601StringToFirestore = (dateString: string): firestore.Timestamp =>
   firestore.Timestamp.fromDate(moment.utc(dateString, moment.ISO_8601).toDate())
 
 const githubParsers: GitHubParsers = {
-  name(id, {readme}) {
-    if (readme != null) {
-      const execResult = nameRegex.exec(readme)
+  name(id, {pageContents}) {
+    if (pageContents != null) {
+      const execResult = nameRegex.exec(pageContents.readme)
       if (execResult != null) {
         return execResult[0]
       }
@@ -281,14 +292,16 @@ const githubParsers: GitHubParsers = {
     }
     return throwFailedAcquisition(id, "latestRelease", "GitHub")
   },
-  pageContents(id, {readme}) {
-    if (readme != null) {
-      const readmeWithoutHeading1 = readme.replace(
-        pageContentsHeading1Matcher,
-        "",
-      )
-      if (readmeWithoutHeading1.length !== 0) {
-        return readmeWithoutHeading1
+  pageContents(id, {pageContents}) {
+    if (pageContents != null) {
+      const readme = pageContents.readme
+        .replace(pageContentsHeading1Matcher, "")
+        .replace(pageContentsMDXBreakingBrTagMatcher, "<br />")
+        .replace(pageContentsRelativeImageSourceMatcher, (match) =>
+          new URL(match, pageContents.url).toString(),
+        )
+      if (readme.length !== 0) {
+        return readme
       }
     }
     return throwFailedAcquisition(id, "pageContents", "GitHub")
@@ -329,12 +342,11 @@ const npmParsers: NPMParsers = {
   },
   pageContents(id, {readme}) {
     if (readme != null) {
-      const readmeWithoutHeading1 = readme.replace(
-        pageContentsHeading1Matcher,
-        "",
-      )
-      if (readmeWithoutHeading1.length !== 0) {
-        return readmeWithoutHeading1
+      const readmeProcessed = readme
+        .replace(pageContentsHeading1Matcher, "")
+        .replace(pageContentsMDXBreakingBrTagMatcher, "<br />")
+      if (readmeProcessed.length !== 0) {
+        return readmeProcessed
       }
     }
     return throwFailedAcquisition(id, "pageContents", "NPM")

@@ -52,11 +52,7 @@ const latestReleaseFromFirestore = ({
 const pageContentsFromFirestore = (
   pageContents: Project.PageContents,
 ): Project.PageContents => {
-  const pageContentsSanitizedPass1 = (pageContents as string).replace(
-    /<br>/g,
-    "<br/>",
-  )
-  const jsx = sync(pageContentsSanitizedPass1, {
+  const jsx = sync(pageContents as string, {
     skipExport: true,
     remarkPlugins: [remarkSlug],
   })

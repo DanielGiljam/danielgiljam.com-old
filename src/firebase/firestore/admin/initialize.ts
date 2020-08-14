@@ -1,6 +1,6 @@
 import admin from "firebase-admin"
 
-import serviceAccountKey from "../../firebase-service-account-key.json"
+import serviceAccountKey from "../../../../firebase-service-account-key.json"
 
 const initializeAdminSDK = (): admin.app.App => {
   try {

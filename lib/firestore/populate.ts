@@ -25,7 +25,7 @@ interface Dump {
   [key: string]: ProjectToFirestore
 }
 
-interface NetworkDump {
+export interface NetworkDump {
   [key: string]: {
     github?: any
     npm?: any
@@ -95,15 +95,6 @@ type NPMParseable = "name" | "description" | "latestRelease" | "pageContents"
 type NPMParsers = {
   [K in NPMParseable]: (id: string, npm: NPMResponse) => ProjectToFirestore[K]
 }
-
-type FieldName =
-  | "name"
-  | "description"
-  | "lifespan"
-  | "latestRelease"
-  | "links"
-  | "pageContents"
-  | "downloads"
 
 let graphqlQuery1: string
 let graphqlQuery2: string
@@ -221,13 +212,14 @@ const fetchNPM = async (
 const githubParseableRegex = /^name|description|lifespan|latestRelease|pageContents$/
 
 const isGitHubParseable = (
-  fieldName: FieldName,
+  fieldName: Project.FieldName,
 ): fieldName is GitHubParseable => githubParseableRegex.test(fieldName)
 
 const npmParseableRegex = /^name|description|latestRelease|pageContents$/
 
-const isNPMParseable = (fieldName: FieldName): fieldName is NPMParseable =>
-  npmParseableRegex.test(fieldName)
+const isNPMParseable = (
+  fieldName: Project.FieldName,
+): fieldName is NPMParseable => npmParseableRegex.test(fieldName)
 
 const throwFailedAcquisition = (
   id: string,
@@ -365,7 +357,7 @@ const throwUnsupportedSourceDirective = (
   )
 }
 
-const resolve = async <FN extends FieldName>(
+const resolve = async <FN extends Project.FieldName>(
   id: string,
   fieldName: FN,
   instruction: Project.Instruction,

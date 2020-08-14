@@ -1,13 +1,9 @@
-query GitHubQuery1($owner: String!, $name: String!) {
+query Query2($owner: String!, $name: String!, $cursor: String!) {
   repository(owner: $owner, name: $name) {
-    name
-    description
-    createdAt
     defaultBranchRef {
       target {
         ... on Commit {
-          authoredDate
-          history {
+          history(before: $cursor) {
             nodes {
               authoredDate
             }
@@ -17,13 +13,6 @@ query GitHubQuery1($owner: String!, $name: String!) {
             }
           }
         }
-      }
-    }
-    releases(last: 1) {
-      nodes {
-        tagName
-        publishedAt
-        isPrerelease
       }
     }
   }

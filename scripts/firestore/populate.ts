@@ -4,7 +4,7 @@ import dotenv from "dotenv"
 
 import populate from "../../lib/firestore/populate"
 import instructions from "../../populate-instructions.json"
-import initializeAdminSDK from "../../src/firebase/initializeAdminSDK"
+import initializeAdminSDK from "../../src/firebase/firestore/admin/initialize"
 
 dotenv.config()
 

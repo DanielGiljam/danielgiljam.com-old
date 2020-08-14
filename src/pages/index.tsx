@@ -1,7 +1,7 @@
 import {GetStaticProps} from "next"
 
 import ProjectList, {ProjectListProps} from "../components/ProjectList"
-import initializeAdminSDK from "../firebase/initializeAdminSDK"
+import initializeAdminSDK from "../firebase/firestore/admin/initialize"
 
 const db = initializeAdminSDK().firestore()
 

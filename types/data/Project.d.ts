@@ -1,3 +1,5 @@
+import {Moment} from "moment"
+
 declare namespace Project {
   export namespace Instruction {
     /** More sources may be added in the future. */
@@ -30,7 +32,7 @@ declare namespace Project {
 
   export namespace MetaData {
     /** More sources may be added in the future. */
-    export interface Sources<D = Date> {
+    export interface Sources<D = Moment> {
       readonly self: {
         /** When this changes, `._modifiedAt` must change too to the same value as this. */
         modifiedAt: D
@@ -86,7 +88,7 @@ declare namespace Project {
       downloads?: "self"
     }
   }
-  export interface MetaData<D = Date> {
+  export interface MetaData<D = Moment> {
     /**
      * Shall be when document is created in Firestore. `._modifiedAt`, `._sources.self.modifiedAt`
      * and `._sources.{source}.refreshedAt` shall be set at the same time to the same value as this.
@@ -101,11 +103,11 @@ declare namespace Project {
   export type Id = string
   export type Name = string
   export type Description = string
-  export interface Lifespan<D = Date> {
+  export interface Lifespan<D = Moment> {
     begun: D
     ended?: D
   }
-  export interface Release<D = Date> {
+  export interface Release<D = Moment> {
     version: string
     timestamp: D
     isPrerelease?: boolean
@@ -124,7 +126,7 @@ declare namespace Project {
     url: string
   }
 
-  export interface Core<D = Date> {
+  export interface Core<D = Moment> {
     readonly id: Id
     name: Name
     description: Description
@@ -134,7 +136,8 @@ declare namespace Project {
     pageContents?: PageContents
     downloads?: Download[]
   }
-  export type Full<D = Date> = Core<D> & MetaData<D>
+  export type Full<D = Moment> = Core<D> & MetaData<D>
+  export type FieldName = keyof Omit<Core, "id">
 }
 
 export default Project

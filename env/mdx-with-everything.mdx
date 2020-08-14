@@ -1,0 +1,149 @@
+This MDX file should contain all kinds of syntax. Paragraphs, blockquotes, lists, tables, you name it! Let's start off with a paragraph containing pointless text. You are reading that very paragraph as of right now. Next comes a [link to this repository](https://github.com/DanielGiljam/danielgiljam.com "github.com/DanielGiljam/danielgiljam.com").
+
+Then comes a `h2`. Oh, and before the `h2` comes some `inlineCode` as well.
+
+## The `h2`
+
+So you just witnessed a `h2`. Did you like what you saw? If not, maybe you'll like the level 3 heading? Or possibly the level 4 heading?
+
+### Tangent on Headings
+
+_Headings_, _headlines_ or _titles_? What should you call them? I think it easily comes down to either _headings_ or _titles_, since _headlines_ kind of suggests a traditional newspapers context at least in my ears.
+
+#### Trying out Bold text
+
+So what does bold text look like? **Now** we know.
+
+##### Dividers
+
+Let's play around dividers.
+
+---
+
+Very divided indeed.
+
+> "Very divided indeed." – Daniel Giljam, 8. Aug 2020
+
+Blockquote looks nice? **_Doesn't it?_**
+
+---
+
+Very thematically broken indeed.
+
+###### The Final Heading
+
+Probably barely looks like a heading. 🙄 (Did the emoji render well? 😅)
+
+## Back to 2nd Level
+
+Run this in your shell:
+
+```bash
+cd ~/Desktop
+take new-project
+git init
+```
+
+After this you should probably make a `.gitignore` file and commit it together with a license and a readme before you do anything else.
+
+Then the next steps would be:
+
+1. Create a `package.json`.
+   - I usually copy one from the previous project I worked on, which has all the author, license and additional information already set the way I want them.
+   - You can also let `npm` do it for you:
+     ```bash
+     npm init -y # Creates a very basic `package.json`.
+     ```
+2. Install [TypeScript](https://www.typescriptlang.org/).
+3. Write some TypeScript code:
+
+   ```typescript
+   import {promises as fs} from "fs"
+   import {resolve} from "path"
+
+   import {transform} from "@babel/core"
+   import mdx from "@mdx-js/mdx"
+   import {MDXProvider, mdx as createElement} from "@mdx-js/react"
+   import {GetStaticProps} from "next"
+   import React from "react"
+   import {renderToStaticMarkup} from "react-dom/server"
+
+   import components from "../theme/mdx-components"
+
+   interface MDXTestPageProps {
+     mdxTest: string
+   }
+
+   export const getStaticProps: GetStaticProps<MDXTestPageProps> = async (
+     context,
+   ) => {
+     const jsx = await mdx(
+       (
+         await fs.readFile(
+           resolve(process.cwd(), "env/mdx-with-everything.mdx"),
+           "utf-8",
+         )
+       ).replace(/<br>/g, "<br/>"),
+       {
+         skipExport: true,
+       },
+     )
+     const code = transform(jsx, {
+       plugins: ["@babel/plugin-transform-react-jsx"],
+     }).code
+     const scope = {mdx: createElement}
+     // eslint-disable-next-line
+     const fn = new Function(
+       "React",
+       ...Object.keys(scope),
+       `${code}; return React.createElement(MDXContent)`,
+     )
+     const element = fn(React, ...Object.values(scope))
+     const elementWithProvider = React.createElement(
+       MDXProvider,
+       {components},
+       element,
+     )
+     const mdxTest = renderToStaticMarkup(elementWithProvider)
+     return {props: {mdxTest}}
+   }
+   ```
+
+## It's Time For a Table
+
+| Items | Weight | Amount |
+| ----- | ------ | ------ |
+| Jar   | 0.5    | 4      |
+| Brick | 2      | 5      |
+| Cloth | 0.4    | 3      |
+
+How did the table go? Is it ugly? Should I ~~delete~~ it?
+
+## A Directory Structure
+
+Here's a `pre` which neatly illustrates a directory structure:
+
+```
+/ [root]
+├── .git
+├── node_modules
+│   ├── typescript  < -- (you must at least have installed typescript)
+│   └── ...
+├── src
+│   └── index.ts
+├── .gitignore
+├── LICENSE
+├── package-lock.json
+├── package.json
+└── README.md
+```
+
+Or wait... Did it become a `code`?...
+
+## Here's a Picture
+
+...of a cool droplet 😲
+
+![A cool droplet](https://images.pexels.com/photos/1100946/pexels-photo-1100946.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260)
+
+That's it! I don't think there's any other Markdown syntax we need to cover!

@@ -115,7 +115,7 @@ declare namespace Project {
     type: "github" | "npm"
     url: string
   }
-  export type PageContents = string
+  export type PageContents = string | {html?: string; css?: string}
   export interface Download {
     /** More download types may be added in the future. */
     type: "binary"

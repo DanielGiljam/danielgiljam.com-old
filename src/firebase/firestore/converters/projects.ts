@@ -1,11 +1,32 @@
+import {transform} from "@babel/core"
 import {
   FirestoreDataConverter,
   QueryDocumentSnapshot,
   Timestamp,
 } from "@google-cloud/firestore"
+import {
+  ServerStyleSheets,
+  ThemeProvider,
+  ThemeProviderProps,
+} from "@material-ui/core/styles"
+import {sync} from "@mdx-js/mdx"
+import {MDXProvider, mdx as createElement} from "@mdx-js/react"
+import autoprefixer from "autoprefixer"
+import CleanCSS from "clean-css"
 import moment from "moment"
+import postcss from "postcss"
+import React from "react"
+import {renderToStaticMarkup} from "react-dom/server"
+import remarkSlug from "remark-slug"
 
 import Project from "../../../../types/data/Project"
+import createTheme from "../../../theme/createTheme"
+import deleteStylesheets from "../../../theme/delete-stylesheets"
+import components from "../../../theme/mdx-components"
+
+const theme = createTheme()
+const prefixer = postcss([autoprefixer])
+const cleanCSS = new CleanCSS()
 
 const lifespanFromFirestore = (
   lifespan: Project.Lifespan<Timestamp>,
@@ -26,6 +47,49 @@ const latestReleaseFromFirestore = ({
   timestamp: moment(timestamp.toDate()).toISOString(),
   ...latestRelease,
 })
+
+/** Inspired by the code sample at https://mdxjs.com/getting-started#do-it-yourself */
+const pageContentsFromFirestore = (
+  pageContents: Project.PageContents,
+): Project.PageContents => {
+  const pageContentsSanitizedPass1 = (pageContents as string).replace(
+    /<br>/g,
+    "<br/>",
+  )
+  const jsx = sync(pageContentsSanitizedPass1, {
+    skipExport: true,
+    remarkPlugins: [remarkSlug],
+  })
+  const code = transform(jsx, {plugins: ["@babel/plugin-transform-react-jsx"]})
+    .code
+  const scope = {mdx: createElement}
+  // eslint-disable-next-line
+  const func = new Function(
+    "React",
+    ...Object.keys(scope),
+    `${code}; return React.createElement(MDXContent)`,
+  )
+  const element = func(React, ...Object.values(scope))
+  const elementWithProvider1 = React.createElement(
+    MDXProvider,
+    {components},
+    element,
+  )
+  const elementWithProvider2 = React.createElement(
+    ThemeProvider,
+    ({theme} as unknown) as ThemeProviderProps,
+    elementWithProvider1,
+  )
+  const sheets = new ServerStyleSheets()
+  const html = renderToStaticMarkup(sheets.collect(elementWithProvider2))
+  deleteStylesheets(sheets)
+  let css = sheets.toString()
+  if (css != null && css.length !== 0) {
+    const processedCSSPass1 = prefixer.process(css).css
+    css = cleanCSS.minify(processedCSSPass1).styles
+  }
+  return {html, css}
+}
 
 const sourcesFromFirestore = (
   sources: Project.MetaData.Sources<Timestamp>,
@@ -85,7 +149,7 @@ export const projectsConverterCore: FirestoreDataConverter<Project.Core<
     }
     const pageContents = snapshot.get("pageContents")
     if (pageContents != null) {
-      project.pageContents = pageContents
+      project.pageContents = pageContentsFromFirestore(pageContents)
     }
     const downloads = snapshot.get("downloads")
     if (downloads != null) {

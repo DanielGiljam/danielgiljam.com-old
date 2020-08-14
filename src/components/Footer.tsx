@@ -3,8 +3,6 @@ import {createStyles, makeStyles} from "@material-ui/core/styles"
 import InfoIcon from "@material-ui/icons/InfoOutlined"
 import Link from "next/link"
 
-import {defaultSpacing} from "../theme/constants"
-
 const useStyles = makeStyles((theme) =>
   createStyles({
     footer: {
@@ -12,7 +10,7 @@ const useStyles = makeStyles((theme) =>
       justifyContent: "flex-end",
     },
     infoButton: {
-      margin: defaultSpacing(theme) - 3, // "3" comes from the padding of IconButton when size is "small"
+      margin: theme.spacing(1) - 3, // "3" comes from the padding of IconButton when size is "small"
     },
   }),
 )

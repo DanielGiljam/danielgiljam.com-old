@@ -1,11 +1,11 @@
 import Typography from "@material-ui/core/Typography"
 import {createStyles, makeStyles} from "@material-ui/core/styles"
 import {GetStaticPaths, GetStaticProps} from "next"
+import Head from "next/head"
 
 import Project from "../../types/data/Project"
 import {projectsConverterCore} from "../firebase/firestore/converters/projects"
 import initializeAdminSDK from "../firebase/initializeAdminSDK"
-import {defaultSpacing} from "../theme/constants"
 
 interface ProjectPageProps {
   project: Project.Core<string>
@@ -44,18 +44,42 @@ export const getStaticPaths: GetStaticPaths = async () => ({
 
 const useStyles = makeStyles((theme) =>
   createStyles({
-    container: {
-      padding: `${defaultSpacing(theme) * 2}px ${defaultSpacing(theme)}px`,
+    h1: {
+      marginBlockEnd: `${theme.spacing(0.5)}px`,
+      marginInlineStart: `${theme.spacing(1)}px`,
+      marginInlineEnd: `${theme.spacing(1)}px`,
+      paddingBlockStart: `${theme.spacing(1)}px`,
     },
   }),
 )
 
 const ProjectPage = ({project}: ProjectPageProps): JSX.Element => {
   const styles = useStyles()
-  console.log("project:", project)
   return (
-    <div className={styles.container}>
-      <Typography align={"center"}>{project.name}</Typography>
+    <div>
+      <Head>
+        <title key={"title"}>{`${project.name} | Daniel Giljam`}</title>
+        <style
+          key={"jss-server-side-2"}
+          dangerouslySetInnerHTML={{
+            __html:
+              (project.pageContents as Exclude<Project.PageContents, string>)
+                ?.css ?? "",
+          }}
+          id={"jss-server-side-2"}
+        />
+      </Head>
+      <Typography className={styles.h1} component={"h1"} variant={"h2"}>
+        {project.name}
+      </Typography>
+      <div
+        dangerouslySetInnerHTML={{
+          __html:
+            (project.pageContents as Exclude<Project.PageContents, string>)
+              ?.html ?? "",
+        }}
+        id={"__mdx"}
+      />
     </div>
   )
 }

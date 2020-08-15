@@ -24,24 +24,26 @@ import createTheme from "../../../theme/createTheme"
 import deleteStylesheets from "../../../theme/delete-stylesheets"
 import components from "../../../theme/mdx-components"
 
-type ProjectTypeName<P> = P extends Project.Flex.Full
-  ? "full"
-  : P extends Project.Flex.Core
+type ProjectTypeName<P extends Project.Flex> = P extends Project.Flex.Core
   ? "core"
+  : P extends Project.Flex.Full
+  ? "full"
   : never
 
-type DateTypeName<P> = P extends Project.Flex<string>
+type DateTypeName<D> = D extends string
   ? "string"
-  : P extends Project.Flex<Moment>
-  ? "moment"
-  : P extends Project.Flex<Date>
+  : D extends Date
   ? "date"
+  : D extends Moment
+  ? "moment"
   : never
 
 interface ProjectsConverterOptions<P extends Project.Flex> {
   projectType: ProjectTypeName<P>
-  dateType: DateTypeName<P>
+  dateType: DateTypeName<Project.DateTypeOf<P>>
 }
+
+type DateType = string | Moment | Date
 
 const theme = createTheme()
 const prefixer = postcss([autoprefixer])
@@ -51,43 +53,53 @@ const dateConverters = {
   fromFirestore: {
     string(timestamp: Timestamp, format?: string): string {
       return format != null
-        ? moment(timestamp.toDate()).format(format)
-        : moment(timestamp.toDate()).toISOString()
+        ? this.moment(timestamp).format(format)
+        : this.moment(timestamp).toISOString()
     },
-    moment: (timestamp: Timestamp): Moment => moment(timestamp.toDate()),
-    date: (timestamp: Timestamp): Date => timestamp.toDate(),
+    date(timestamp: Timestamp): Date {
+      return timestamp.toDate()
+    },
+    moment(timestamp: Timestamp): Moment {
+      return moment(this.date(timestamp))
+    },
   },
   toFirestore: {
     string(timestamp: string, format?: string): Timestamp {
       return this.moment(moment.utc(timestamp, format ?? moment.ISO_8601))
     },
+    date(timestamp: Date): Timestamp {
+      return Timestamp.fromDate(timestamp)
+    },
     moment(timestamp: Moment): Timestamp {
-      return Timestamp.fromDate(timestamp.toDate())
+      return this.date(timestamp.toDate())
     },
   },
 }
 
-const lifespanFromFirestore = <P extends Project.Flex.Core>(
+const lifespanFromFirestore = <D extends DateType>(
   lifespan: Project.Lifespan<Timestamp>,
-  dateType: DateTypeName<P>,
-): P["lifespan"] => {
-  const lifespanConverted: P["lifespan"] = {
-    begun: dateConverters.fromFirestore[dateType](lifespan.begun, "MMM YYYY"),
+  dateType: DateTypeName<D>,
+): Project.Lifespan<D> => {
+  const lifespanConverted: Project.Lifespan<D> = {
+    begun: dateConverters.fromFirestore[dateType](
+      lifespan.begun,
+      "MMM YYYY",
+    ) as D,
   }
   if (lifespan.ended != null) {
     lifespanConverted.ended = dateConverters.fromFirestore[dateType](
       lifespan.ended,
       "MMM YYYY",
-    )
+    ) as D
   }
   return lifespanConverted
 }
 
-const latestReleaseFromFirestore = <P extends Project.Flex.Core>(
+const latestReleaseFromFirestore = <D extends DateType>(
   {timestamp, ...latestRelease}: Project.Release<Timestamp>,
-  dateType: DateTypeName<P>,
-): P["latestRelease"] => ({
-  timestamp: dateConverters.fromFirestore[dateType](timestamp),
+  dateType: DateTypeName<D>,
+): Project.Release<D> => ({
+  timestamp: dateConverters.fromFirestore[dateType](timestamp) as D,
   ...latestRelease,
 })
 
@@ -130,59 +142,58 @@ const pageContentsFromFirestore = (
   return {html, css}
 }
 
-const sourcesFromFirestore = <P extends Project.MetaData<any>>(
+const sourcesFromFirestore = <D extends DateType>(
   sources: Project.MetaData.Sources<Timestamp>,
-  dateType: DateTypeName<P>,
-): P["_sources"] => {
-  const sourcesConverted: P["_sources"] = {
+  dateType: DateTypeName<D>,
+): Project.MetaData.Sources<D> => {
+  const sourcesConverted: Project.MetaData.Sources<D> = {
     self: {
       modifiedAt: dateConverters.fromFirestore[dateType](
         sources.self.modifiedAt,
-      ),
+      ) as D,
     },
   }
   if (sources.github != null) {
     const {refreshedAt, ...github} = sources.github
     sourcesConverted.github = {
-      refreshedAt: dateConverters.fromFirestore[dateType](refreshedAt),
+      refreshedAt: dateConverters.fromFirestore[dateType](refreshedAt) as D,
       ...github,
     }
   }
   if (sources.npm != null) {
     const {refreshedAt, ...npm} = sources.npm
     sourcesConverted.npm = {
-      refreshedAt: dateConverters.fromFirestore[dateType](refreshedAt),
+      refreshedAt: dateConverters.fromFirestore[dateType](refreshedAt) as D,
       ...npm,
     }
   }
   return sourcesConverted
 }
 
-const metaDataFromFirestore = <P extends Project.MetaData<any>>(
+const metaDataFromFirestore = <D extends DateType>(
   snapshot: QueryDocumentSnapshot,
-  dateType: DateTypeName<P>,
-): P =>
-  (({
-    _createdAt: moment(snapshot.get("_createdAt").toDate()).toISOString(),
-    _modifiedAt: moment(snapshot.get("_modifiedAt").toDate()).toISOString(),
-    _sources: sourcesFromFirestore(snapshot.get("_sources"), dateType),
-    _sourceMap: snapshot.get("_sourceMap"),
-  } as unknown) as P)
+  dateType: DateTypeName<D>,
+): Project.MetaData<D> => ({
+  _createdAt: moment(snapshot.get("_createdAt").toDate()).toISOString() as D,
+  _modifiedAt: moment(snapshot.get("_modifiedAt").toDate()).toISOString() as D,
+  _sources: sourcesFromFirestore(snapshot.get("_sources"), dateType),
+  _sourceMap: snapshot.get("_sourceMap"),
+})
 
-const projectsConverterCore = <P extends Project.Flex.Core>(
-  dateType: DateTypeName<P>,
-): FirestoreDataConverter<P> => ({
+const projectsConverterCore = <D extends DateType>(
+  dateType: DateTypeName<D>,
+): FirestoreDataConverter<Project.Core<D>> => ({
   // TODO: implement toFirestore() in projectsConverterCore
   toFirestore() {
     return {}
   },
   fromFirestore(snapshot) {
-    const project = ({
+    const project: Project.Core<D> = {
       id: snapshot.id,
       name: snapshot.get("name"),
       description: snapshot.get("description"),
       lifespan: lifespanFromFirestore(snapshot.get("lifespan"), dateType),
-    } as unknown) as P
+    }
     const latestRelease = snapshot.get("latestRelease")
     if (latestRelease != null) {
       project.latestRelease = latestReleaseFromFirestore(
@@ -206,9 +217,9 @@ const projectsConverterCore = <P extends Project.Flex.Core>(
   },
 })
 
-const projectsConverterFull = <P extends Project.Flex.Full>(
-  dateType: DateTypeName<P>,
-): FirestoreDataConverter<P> => ({
+const projectsConverterFull = <D extends DateType>(
+  dateType: DateTypeName<D>,
+): FirestoreDataConverter<Project.Full<D>> => ({
   // TODO: implement toFirestore() in projectsConverterFull
   toFirestore() {
     return {}
@@ -224,13 +235,11 @@ const projectsConverterFull = <P extends Project.Flex.Full>(
 const projectsConverter = <P extends Project.Flex = Project.Flex>(
   options: ProjectsConverterOptions<P>,
 ): FirestoreDataConverter<P> => {
-  switch (options.projectType) {
-    case "core":
-      return projectsConverterCore(options.dateType)
-    case "full":
-      return projectsConverterFull(options.dateType)
+  if (options.projectType === "core") {
+    return projectsConverterCore(options.dateType) as FirestoreDataConverter<P>
+  } else {
+    return projectsConverterFull(options.dateType) as FirestoreDataConverter<P>
   }
-  throw new Error("Failed to get projectsConverter. Options were invalid.")
 }
 
 export default projectsConverter

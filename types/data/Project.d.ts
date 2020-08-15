@@ -140,6 +140,12 @@ declare namespace Project {
 
   export type FieldName = keyof Omit<Core, "id">
 
+  export type DateTypeOf<P extends Project.Flex> = P extends Project.Flex<
+    infer D
+  >
+    ? D
+    : never
+
   export namespace Flex {
     export type Core = Project.Core<any>
     export type Full = Project.Full<any>

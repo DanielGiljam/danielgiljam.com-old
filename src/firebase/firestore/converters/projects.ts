@@ -48,6 +48,19 @@ const prefixer = postcss([autoprefixer])
 const cleanCSS = new CleanCSS()
 
 const dateConverters = {
+  toFirestore: {
+    string(timestamp: DateType, format?: string): Timestamp {
+      return this.moment(
+        moment.utc(timestamp as string, format ?? moment.ISO_8601),
+      )
+    },
+    date(timestamp: DateType): Timestamp {
+      return Timestamp.fromDate(timestamp as Date)
+    },
+    moment(timestamp: DateType): Timestamp {
+      return this.date((timestamp as Moment).toDate())
+    },
+  },
   fromFirestore: {
     string(timestamp: Timestamp, format?: string): string {
       return format != null
@@ -61,17 +74,22 @@ const dateConverters = {
       return moment(this.date(timestamp))
     },
   },
-  toFirestore: {
-    string(timestamp: string, format?: string): Timestamp {
-      return this.moment(moment.utc(timestamp, format ?? moment.ISO_8601))
-    },
-    date(timestamp: Date): Timestamp {
-      return Timestamp.fromDate(timestamp)
-    },
-    moment(timestamp: Moment): Timestamp {
-      return this.date(timestamp.toDate())
-    },
-  },
+}
+
+const lifespanToFirestore = <D extends DateType>(
+  lifespan: Project.Lifespan<D>,
+  dateType: DateTypeName<D>,
+): Project.Lifespan<Timestamp> => {
+  const lifespanConverted: Project.Lifespan<Timestamp> = {
+    begun: dateConverters.toFirestore[dateType](lifespan.begun, "MMM YYYY"),
+  }
+  if (lifespan.ended != null) {
+    lifespanConverted.ended = dateConverters.toFirestore[dateType](
+      lifespan.ended,
+      "MMM YYYY",
+    )
+  }
+  return lifespanConverted
 }
 
 const lifespanFromFirestore = <D extends DateType>(
@@ -92,6 +110,14 @@ const lifespanFromFirestore = <D extends DateType>(
   }
   return lifespanConverted
 }
+
+const latestReleaseToFirestore = <D extends DateType>(
+  {timestamp, ...latestRelease}: Project.Release<D>,
+  dateType: DateTypeName<D>,
+): Project.Release<Timestamp> => ({
+  timestamp: dateConverters.toFirestore[dateType](timestamp),
+  ...latestRelease,
+})
 
 const latestReleaseFromFirestore = <D extends DateType>(
   {timestamp, ...latestRelease}: Project.Release<Timestamp>,
@@ -140,6 +166,32 @@ const pageContentsFromFirestore = (
   return {html, css}
 }
 
+const sourcesToFirestore = <D extends DateType>(
+  sources: Project.MetaData.Sources<D>,
+  dateType: DateTypeName<D>,
+): Partial<Project.MetaData.Sources<Timestamp>> => {
+  const sourcesConverted: Partial<Project.MetaData.Sources<Timestamp>> = {
+    self: {
+      modifiedAt: dateConverters.toFirestore[dateType](sources.self.modifiedAt),
+    },
+  }
+  if (sources.github != null) {
+    const {refreshedAt, ...github} = sources.github
+    sourcesConverted.github = {
+      refreshedAt: dateConverters.toFirestore[dateType](refreshedAt),
+      ...github,
+    }
+  }
+  if (sources.npm != null) {
+    const {refreshedAt, ...npm} = sources.npm
+    sourcesConverted.npm = {
+      refreshedAt: dateConverters.toFirestore[dateType](refreshedAt),
+      ...npm,
+    }
+  }
+  return sourcesConverted
+}
+
 const sourcesFromFirestore = <D extends DateType>(
   sources: Project.MetaData.Sources<Timestamp>,
   dateType: DateTypeName<D>,
@@ -168,12 +220,43 @@ const sourcesFromFirestore = <D extends DateType>(
   return sourcesConverted
 }
 
+const metaDataToFirestore = <D extends DateType>(
+  modelObject: Partial<Project.Full<D>>,
+  dateType: DateTypeName<D>,
+): Partial<Project.MetaData<Timestamp>> => {
+  const project: Partial<Project.MetaData<Timestamp>> = {}
+  if (modelObject._createdAt != null) {
+    // @ts-expect-error
+    project._createdAt = dateConverters.toFirestore[dateType](
+      modelObject._createdAt,
+    )
+  }
+  if (modelObject._modifiedAt != null) {
+    project._modifiedAt = dateConverters.toFirestore[dateType](
+      modelObject._modifiedAt,
+    )
+  }
+  if (modelObject._sources != null) {
+    // @ts-expect-error
+    project._sources = sourcesToFirestore(modelObject._sources, dateType)
+  }
+  if (modelObject._sourceMap != null) {
+    // @ts-expect-error
+    project._sourceMap = modelObject._sourceMap
+  }
+  return project
+}
+
 const metaDataFromFirestore = <D extends DateType>(
   snapshot: QueryDocumentSnapshot,
   dateType: DateTypeName<D>,
 ): Project.MetaData<D> => ({
-  _createdAt: moment(snapshot.get("_createdAt").toDate()).toISOString() as D,
-  _modifiedAt: moment(snapshot.get("_modifiedAt").toDate()).toISOString() as D,
+  _createdAt: dateConverters.fromFirestore[dateType](
+    snapshot.get("_createdAt"),
+  ) as D,
+  _modifiedAt: dateConverters.fromFirestore[dateType](
+    snapshot.get("_modifiedAt"),
+  ) as D,
   _sources: sourcesFromFirestore(snapshot.get("_sources"), dateType),
   _sourceMap: snapshot.get("_sourceMap"),
 })
@@ -181,9 +264,33 @@ const metaDataFromFirestore = <D extends DateType>(
 const projectsConverterCore = <D extends DateType>(
   dateType: DateTypeName<D>,
 ): FirestoreDataConverter<Project.Core<D>> => ({
-  // TODO: implement toFirestore() in projectsConverterCore
-  toFirestore() {
-    return {}
+  toFirestore(modelObject: Partial<Project.Core<D>>) {
+    const project: Partial<Project.Core<Timestamp>> = {}
+    if (modelObject.name != null) {
+      project.name = modelObject.name
+    }
+    if (modelObject.description != null) {
+      project.description = modelObject.description
+    }
+    if (modelObject.lifespan != null) {
+      project.lifespan = lifespanToFirestore(modelObject.lifespan, dateType)
+    }
+    if (modelObject.latestRelease != null) {
+      project.latestRelease = latestReleaseToFirestore(
+        modelObject.latestRelease,
+        dateType,
+      )
+    }
+    if (modelObject.links != null) {
+      project.links = modelObject.links
+    }
+    if (modelObject.pageContents != null) {
+      project.pageContents = modelObject.pageContents
+    }
+    if (modelObject.downloads != null) {
+      project.downloads = modelObject.downloads
+    }
+    return project
   },
   fromFirestore(snapshot) {
     const project: Project.Core<D> = {
@@ -218,9 +325,11 @@ const projectsConverterCore = <D extends DateType>(
 const projectsConverterFull = <D extends DateType>(
   dateType: DateTypeName<D>,
 ): FirestoreDataConverter<Project.Full<D>> => ({
-  // TODO: implement toFirestore() in projectsConverterFull
-  toFirestore() {
-    return {}
+  toFirestore(modelObject: Partial<Project.Full<D>>) {
+    return {
+      ...projectsConverterCore(dateType).toFirestore(modelObject, {}),
+      ...metaDataToFirestore(modelObject, dateType),
+    }
   },
   fromFirestore(snapshot) {
     return {

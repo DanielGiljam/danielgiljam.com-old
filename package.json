@@ -24,12 +24,14 @@
     "tff": "npm run tsc && npm run fix && npm run format"
   },
   "dependencies": {
+    "@hyperjump/json-schema": "^0.11.1",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.0.0",
     "firebase-tools": "^8.7.0",
     "isomorphic-unfetch": "^3.0.0",
     "moment": "^2.27.0",
+    "ts-json-schema-generator": "^0.71.1",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.7"
   },

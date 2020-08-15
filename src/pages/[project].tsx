@@ -5,7 +5,7 @@ import Head from "next/head"
 
 import Project from "../../types/data/Project"
 import initializeAdminSDK from "../firebase/firestore/admin/initialize"
-import {projectsConverterCore} from "../firebase/firestore/converters/projects"
+import projectsConverter from "../firebase/firestore/converters/projects"
 
 interface ProjectPageProps {
   project: Project.Core<string>
@@ -20,7 +20,12 @@ export const getStaticProps: GetStaticProps<
   const slug = context.params?.project ?? ""
   const project = await db
     .collection("projects")
-    .withConverter(projectsConverterCore)
+    .withConverter(
+      projectsConverter<Project.Core<string>>({
+        projectType: "core",
+        dateType: "string",
+      }),
+    )
     .doc(slug)
     .get()
   if (!project.exists) {

@@ -24,11 +24,9 @@ import createTheme from "../../../theme/createTheme"
 import deleteStylesheets from "../../../theme/delete-stylesheets"
 import components from "../../../theme/mdx-components"
 
-type ProjectTypeName<P extends Project.Flex> = P extends Project.Flex.Core
-  ? "core"
-  : P extends Project.Flex.Full
+type ProjectTypeName<P extends Project.Flex> = P extends Project.Flex.Full
   ? "full"
-  : never
+  : "core"
 
 type DateTypeName<D> = D extends string
   ? "string"
@@ -232,7 +230,7 @@ const projectsConverterFull = <D extends DateType>(
   },
 })
 
-const projectsConverter = <P extends Project.Flex = Project.Flex>(
+const projectsConverter = <P extends Project.Flex>(
   options: ProjectsConverterOptions<P>,
 ): FirestoreDataConverter<P> => {
   if (options.projectType === "core") {

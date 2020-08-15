@@ -150,7 +150,7 @@ declare namespace Project {
     export type Core = Project.Core<any>
     export type Full = Project.Full<any>
   }
-  export type Flex<D = any> = Core<D> & Full<D>
+  export type Flex<D = any> = Core<D> & Partial<MetaData<D>>
 }
 
 export default Project

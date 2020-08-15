@@ -137,7 +137,14 @@ declare namespace Project {
     downloads?: Download[]
   }
   export type Full<D = Moment> = Core<D> & MetaData<D>
+
   export type FieldName = keyof Omit<Core, "id">
+
+  export namespace Flex {
+    export type Core = Project.Core<any>
+    export type Full = Project.Full<any>
+  }
+  export type Flex<D = any> = Core<D> & Full<D>
 }
 
 export default Project

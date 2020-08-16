@@ -10,19 +10,15 @@ import {
   removeHeading1,
 } from "../admin/util"
 
-type SupportedField = "name" | "description" | "latestRelease" | "pageContents"
+export type SupportedField =
+  | "name"
+  | "description"
+  | "latestRelease"
+  | "pageContents"
 
-export type NPMSupportedField = SupportedField
-
-type Directive = "_npm"
-
-export type NPMDirective = Directive
-
-interface Config {
+export interface Config {
   name: string
 }
-
-export type NPMConfig = Config
 
 interface Response {
   name: string
@@ -87,7 +83,7 @@ class NPM extends Source<SupportedField, Config, Response> {
     },
   }
 
-  static readonly DIRECTIVE: Directive = "_npm"
+  static readonly DIRECTIVE = "_npm"
 
   protected static readonly _FETCHER: Fetcher<Config, Response> = async (
     id,

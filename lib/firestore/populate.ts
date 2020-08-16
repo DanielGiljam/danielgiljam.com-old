@@ -7,8 +7,8 @@ import {firestore} from "firebase-admin"
 import fetch from "isomorphic-unfetch"
 import moment from "moment"
 
-import {GitHubConfig} from "../../src/firestore/sources/github"
-import {NPMConfig} from "../../src/firestore/sources/npm"
+import {Config as GitHubConfig} from "../../src/firestore/sources/github"
+import {Config as NPMConfig} from "../../src/firestore/sources/npm"
 import PopulateInstructions, {
   PopulateInstruction,
 } from "../../types/data/PopulateInstructions"

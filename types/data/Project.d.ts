@@ -1,10 +1,13 @@
 import {Moment} from "moment"
 
 import {
-  GitHubConfig,
-  GitHubSupportedField,
+  Config as GitHubConfig,
+  SupportedField as GitHubSupportedField,
 } from "../../src/firestore/sources/github"
-import {NPMConfig, NPMSupportedField} from "../../src/firestore/sources/npm"
+import {
+  Config as NPMConfig,
+  SupportedField as NPMSupportedField,
+} from "../../src/firestore/sources/npm"
 
 /**
  * ABOUT THE "KEEP UP TO DATE!" ANNOTATIONS:
@@ -14,9 +17,8 @@ import {NPMConfig, NPMSupportedField} from "../../src/firestore/sources/npm"
  *
  * You can expect each Source file to export
  *   - The Source itself (as the default export)
- *   - A "supported fields" type (a named export, named as `${Source._FANCY_NAME}SupportedField`)
- *   - A "directive" type (a named export, named as `${Source._FANCY_NAME}Directive`)
- *   - A config type (a named export, named as `${Source._FANCY_NAME}Config`)
+ *   - A "supported fields" type (a named export, named as SupportedField)
+ *   - A config type (a named export, named as Config)
  */
 
 declare namespace Project {

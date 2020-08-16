@@ -9,7 +9,8 @@
   "author": "Daniel Giljam (https://github.com/DanielGiljam)",
   "repository": "github:DanielGiljam/danielgiljam.com",
   "scripts": {
-    "generate-populate-instructions-json-schema": "node scripts/generate-populate-instructions-json-schema.js",
+    "generate-populate-instructions-json-schema": "ts-node-script -O '{\"module\": \"commonjs\"}' scripts/generate-populate-instructions-json-schema.ts",
+    "validate-populate-instructions-with-schema": "ts-node-script -O '{\"module\": \"commonjs\"}' scripts/validate-populate-instructions-with-schema.ts",
     "populate": "ts-node-script -O '{\"module\": \"commonjs\"}' scripts/firestore/populate.ts",
     "dev": "next",
     "build:next": "rimraf .next out && next build && next export",
@@ -25,16 +26,16 @@
     "tff": "npm run tsc && npm run fix && npm run format"
   },
   "dependencies": {
-    "@hyperjump/json-schema": "^0.11.1",
+    "ajv": "^6.12.4",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
     "firebase-admin": "^9.0.0",
     "firebase-tools": "^8.7.0",
     "isomorphic-unfetch": "^3.0.0",
     "moment": "^2.27.0",
-    "ts-json-schema-generator": "^0.71.1",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.7"
+    "typescript": "^3.9.7",
+    "typescript-json-schema": "^0.42.0"
   },
   "devDependencies": {
     "@babel/core": "^7.11.1",

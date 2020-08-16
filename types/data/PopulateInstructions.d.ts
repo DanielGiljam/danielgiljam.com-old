@@ -1,12 +1,10 @@
-import {
-  GitHubConfig,
-  GitHubDirective,
-  GitHubSupportedField,
+import GitHub, {
+  Config as GitHubConfig,
+  SupportedField as GitHubSupportedField,
 } from "../../src/firestore/sources/github"
-import {
-  NPMConfig,
-  NPMDirective,
-  NPMSupportedField,
+import NPM, {
+  Config as NPMConfig,
+  SupportedField as NPMSupportedField,
 } from "../../src/firestore/sources/npm"
 
 import Project from "./Project"
@@ -19,9 +17,8 @@ import Project from "./Project"
  *
  * You can expect each Source file to export
  *   - The Source itself (as the default export)
- *   - A "supported fields" type (a named export, named as `${Source._FANCY_NAME}SupportedField`)
- *   - A "directive" type (a named export, named as `${Source._FANCY_NAME}Directive`)
- *   - A config type (a named export, named as `${Source._FANCY_NAME}Config`)
+ *   - A "supported fields" type (a named export, named as SupportedField)
+ *   - A config type (a named export, named as Config)
  */
 
 /**
@@ -32,8 +29,8 @@ import Project from "./Project"
 type PopulateInstructionField<F, FN extends string> =
   | F
   // ======> KEEP UP TO DATE! (see top of file for more information)
-  | (FN extends GitHubSupportedField ? GitHubDirective : never)
-  | (FN extends NPMSupportedField ? NPMDirective : never)
+  | (FN extends GitHubSupportedField ? typeof GitHub.DIRECTIVE : never)
+  | (FN extends NPMSupportedField ? typeof NPM.DIRECTIVE : never)
 // <====== KEEP UP TO DATE! (end)
 
 export type PopulateInstruction = Partial<
@@ -55,7 +52,5 @@ export type PopulateInstruction = Partial<
 interface PopulateInstructions {
   [key: string]: PopulateInstruction
 }
-
-export type PopulateInstructions = PopulateInstructions
 
 export default PopulateInstructions

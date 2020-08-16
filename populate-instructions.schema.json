@@ -1,224 +1,223 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/PopulateInstructions",
+  "$ref": "#/definitions/default.50d88764",
   "definitions": {
-    "PopulateInstructions": {
+    "default.50d88764": {
+      "title": "default.50d88764",
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/PopulateInstruction"
-      }
-    },
-    "PopulateInstruction": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "_sources": {
-          "type": "object",
-          "properties": {
-            "github": {
-              "$ref": "#/definitions/GitHubConfig"
-            },
-            "npm": {
-              "$ref": "#/definitions/NPMConfig"
-            }
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "name"
           },
-          "additionalProperties": false
-        },
-        "name": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Project.Name"
+          "description": {
+            "type": "string",
+            "title": "description"
+          },
+          "latestRelease": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/default.Release<string>.f8908403"
+              },
+              {
+                "enum": ["_github", "_npm"],
+                "type": "string"
+              }
+            ],
+            "title": "latestRelease"
+          },
+          "pageContents": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "html": {
+                    "type": "string",
+                    "title": "html"
+                  },
+                  "css": {
+                    "type": "string",
+                    "title": "css"
+                  }
+                },
+                "defaultProperties": [],
+                "additionalProperties": false
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "pageContents"
+          },
+          "lifespan": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/default.Lifespan<string>.8e0a6c13"
+              },
+              {
+                "enum": ["_github"],
+                "type": "string"
+              }
+            ],
+            "title": "lifespan"
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/default.Link.902513d3"
             },
-            {
-              "$ref": "#/definitions/GitHubDirective"
+            "title": "links"
+          },
+          "downloads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/default.Download.45c97a3c"
             },
-            {
-              "$ref": "#/definitions/NPMDirective"
-            }
-          ]
-        },
-        "description": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Project.Description"
+            "title": "downloads"
+          },
+          "_sources": {
+            "type": "object",
+            "properties": {
+              "github": {
+                "$ref": "#/definitions/Config.3b186f31",
+                "title": "github"
+              },
+              "npm": {
+                "$ref": "#/definitions/Config.a9f67f3e",
+                "title": "npm"
+              }
             },
-            {
-              "$ref": "#/definitions/GitHubDirective"
-            },
-            {
-              "$ref": "#/definitions/NPMDirective"
-            }
-          ]
-        },
-        "lifespan": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Project.Lifespan%3Cstring%3E"
-            },
-            {
-              "$ref": "#/definitions/GitHubDirective"
-            }
-          ]
-        },
-        "latestRelease": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Project.Release%3Cstring%3E"
-            },
-            {
-              "$ref": "#/definitions/GitHubDirective"
-            },
-            {
-              "$ref": "#/definitions/NPMDirective"
-            }
-          ]
-        },
-        "links": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Project.Link"
+            "defaultProperties": [],
+            "additionalProperties": false,
+            "title": "_sources"
           }
-        },
-        "pageContents": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/Project.PageContents"
-            },
-            {
-              "$ref": "#/definitions/GitHubDirective"
-            },
-            {
-              "$ref": "#/definitions/NPMDirective"
-            }
-          ]
-        },
-        "downloads": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Project.Download"
-          }
-        }
-      }
-    },
-    "GitHubConfig": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "countLifespanAsStillOngoing": {
-          "type": "boolean"
         }
       },
-      "required": ["owner", "name"],
-      "additionalProperties": false
+      "defaultProperties": []
     },
-    "NPMConfig": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        }
-      },
-      "required": ["name"],
-      "additionalProperties": false
-    },
-    "Project.Name": {
-      "type": "string"
-    },
-    "GitHubDirective": {
-      "type": "string",
-      "enum": ["_github"]
-    },
-    "NPMDirective": {
-      "type": "string",
-      "enum": ["_npm"]
-    },
-    "Project.Description": {
-      "type": "string"
-    },
-    "Project.Lifespan<string>": {
-      "type": "object",
-      "properties": {
-        "begun": {
-          "type": "string"
-        },
-        "ended": {
-          "type": "string"
-        }
-      },
-      "required": ["begun"],
-      "additionalProperties": false
-    },
-    "Project.Release<string>": {
+    "default.Release<string>.f8908403": {
+      "title": "default.Release<string>.f8908403",
       "type": "object",
       "properties": {
         "version": {
-          "type": "string"
+          "type": "string",
+          "title": "version"
         },
         "timestamp": {
-          "type": "string"
+          "$ref": "#/definitions/Project.Release.D.36808144",
+          "title": "timestamp"
         },
         "isPrerelease": {
-          "type": "boolean"
+          "type": "boolean",
+          "title": "isPrerelease"
         }
       },
-      "required": ["version", "timestamp"],
-      "additionalProperties": false
+      "defaultProperties": [],
+      "additionalProperties": false,
+      "required": ["timestamp", "version"]
     },
-    "Project.Link": {
+    "Project.Release.D.36808144": {
+      "title": "Project.Release.D.36808144",
+      "type": "string"
+    },
+    "default.Lifespan<string>.8e0a6c13": {
+      "title": "default.Lifespan<string>.8e0a6c13",
+      "type": "object",
+      "properties": {
+        "begun": {
+          "$ref": "#/definitions/Project.Lifespan.D.6381d366",
+          "title": "begun"
+        },
+        "ended": {
+          "$ref": "#/definitions/Project.Lifespan.D.6381d366",
+          "title": "ended"
+        }
+      },
+      "defaultProperties": [],
+      "additionalProperties": false,
+      "required": ["begun"]
+    },
+    "Project.Lifespan.D.6381d366": {
+      "title": "Project.Lifespan.D.6381d366",
+      "type": "string"
+    },
+    "default.Link.902513d3": {
+      "title": "default.Link.902513d3",
       "type": "object",
       "properties": {
         "type": {
+          "enum": ["github", "npm"],
           "type": "string",
-          "enum": ["github", "npm"]
+          "title": "type"
         },
         "url": {
-          "type": "string"
+          "type": "string",
+          "title": "url"
         }
       },
-      "required": ["type", "url"],
-      "additionalProperties": false
+      "defaultProperties": [],
+      "additionalProperties": false,
+      "required": ["type", "url"]
     },
-    "Project.PageContents": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "html": {
-              "type": "string"
-            },
-            "css": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
-    "Project.Download": {
+    "default.Download.45c97a3c": {
+      "title": "default.Download.45c97a3c",
       "type": "object",
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["binary"]
+          "enum": ["binary"],
+          "title": "type"
         },
         "platform": {
+          "enum": ["macos", "windows"],
           "type": "string",
-          "enum": ["windows", "macos"]
+          "title": "platform"
         },
         "url": {
-          "type": "string"
+          "type": "string",
+          "title": "url"
         }
       },
-      "required": ["type", "platform", "url"],
-      "additionalProperties": false
+      "defaultProperties": [],
+      "additionalProperties": false,
+      "required": ["platform", "type", "url"]
+    },
+    "Config.3b186f31": {
+      "title": "Config.3b186f31",
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "title": "owner"
+        },
+        "name": {
+          "type": "string",
+          "title": "name"
+        },
+        "countLifespanAsStillOngoing": {
+          "type": "boolean",
+          "title": "countLifespanAsStillOngoing"
+        }
+      },
+      "defaultProperties": [],
+      "additionalProperties": false,
+      "required": ["name", "owner"]
+    },
+    "Config.a9f67f3e": {
+      "title": "Config.a9f67f3e",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "name"
+        }
+      },
+      "defaultProperties": [],
+      "additionalProperties": false,
+      "required": ["name"]
     }
-  }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
 }

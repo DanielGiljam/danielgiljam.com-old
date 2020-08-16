@@ -14,26 +14,18 @@ import {
   replaceImageSourcesRelativeWithAbsolute,
 } from "../../admin/util"
 
-type SupportedField =
+export type SupportedField =
   | "name"
   | "description"
   | "lifespan"
   | "latestRelease"
   | "pageContents"
 
-export type GitHubSupportedField = SupportedField
-
-type Directive = "_github"
-
-export type GitHubDirective = Directive
-
-interface Config {
+export interface Config {
   owner: string
   name: string
   countLifespanAsStillOngoing?: boolean
 }
-
-export type GitHubConfig = Config
 
 interface Response {
   description?: string
@@ -130,7 +122,7 @@ class GitHub extends Source<SupportedField, Config, Response> {
   private static _GRAPHQL_QUERY_1: string
   private static _GRAPHQL_QUERY_2: string
 
-  static readonly DIRECTIVE: Directive = "_github"
+  static readonly DIRECTIVE = "_github"
 
   protected static readonly _FETCHER: Fetcher<Config, Response> = async (
     id,

@@ -20,7 +20,11 @@ export type Parsers<
 
 class SourceError extends Error {}
 
-abstract class Source<S extends Project.FieldName, C, R> {
+abstract class Source<
+  S extends Project.FieldName = Project.FieldName,
+  C = any,
+  R = any
+> {
   protected static readonly _FANCY_NAME: string
   protected static readonly _SUPPORTED_FIELDS_REGEX: RegExp
   protected static readonly _PARSERS: Partial<Parsers>

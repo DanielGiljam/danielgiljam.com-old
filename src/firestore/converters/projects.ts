@@ -19,10 +19,10 @@ import React from "react"
 import {renderToStaticMarkup} from "react-dom/server"
 import remarkSlug from "remark-slug"
 
-import Project from "../../../../types/data/Project"
-import createTheme from "../../../theme/createTheme"
-import deleteStylesheets from "../../../theme/delete-stylesheets"
-import components from "../../../theme/mdx-components"
+import Project from "../../../types/data/Project"
+import createTheme from "../../theme/createTheme"
+import deleteStylesheets from "../../theme/delete-stylesheets"
+import components from "../../theme/mdx-components"
 
 type ProjectTypeName<P extends Project.Flex> = P extends Project.Flex.Full
   ? "full"

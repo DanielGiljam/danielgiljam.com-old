@@ -7,13 +7,14 @@ import {firestore} from "firebase-admin"
 import fetch from "isomorphic-unfetch"
 import moment from "moment"
 
+import {GitHubConfig} from "../../src/firestore/sources/github"
+import {NPMConfig} from "../../src/firestore/sources/npm"
+import PopulateInstructions, {
+  PopulateInstruction,
+} from "../../types/data/PopulateInstructions"
 import Project from "../../types/data/Project"
 
 type ProjectToFirestore = Omit<Project.Full<firestore.FieldValue>, "id">
-
-interface PopulationInstructions {
-  [key: string]: Project.Instruction
-}
 
 interface PopulateOptions {
   testMode?: boolean
@@ -131,11 +132,7 @@ const githubFetch2Endpoint = (
 
 const fetchGitHub = async (
   id: string,
-  {
-    owner,
-    name,
-    countLifespanAsStillOngoing,
-  }: NonNullable<Project.Instruction.Sources["github"]>,
+  {owner, name, countLifespanAsStillOngoing}: NonNullable<GitHubConfig>,
   networkDumpProperty: NetworkDump[keyof NetworkDump],
 ): Promise<GitHubResponse> => {
   const githubResponse: GitHubResponse = await fetch(
@@ -193,7 +190,7 @@ const npmFetch1Endpoint = (name: string): Parameters<typeof fetch> => [
 
 const fetchNPM = async (
   id: string,
-  {name}: NonNullable<Project.Instruction.Sources["npm"]>,
+  {name}: NonNullable<NPMConfig>,
   networkDumpProperty: NetworkDump[keyof NetworkDump],
 ): Promise<NPMResponse> =>
   await fetch(...npmFetch1Endpoint(name)).then(async (res) => {
@@ -360,7 +357,7 @@ const throwUnsupportedSourceDirective = (
 const resolve = async <FN extends Project.FieldName>(
   id: string,
   fieldName: FN,
-  instruction: Project.Instruction,
+  instruction: PopulateInstruction,
   _sourceMap: Project.MetaData.SourceMap,
   github?: GitHubResponse,
   npm?: NPMResponse,
@@ -481,7 +478,7 @@ const resolve = async <FN extends Project.FieldName>(
 
 const assemble = async (
   id: string,
-  instruction: Project.Instruction,
+  instruction: PopulateInstruction,
   networkDump: NetworkDump,
 ): Promise<ProjectToFirestore> => {
   const _sourceMap: Project.MetaData.SourceMap = {
@@ -592,8 +589,8 @@ const throwMissingSourceConfiguration = (
 
 const validate = async (
   id: string,
-  instruction: Project.Instruction,
-): Promise<Project.Instruction> => {
+  instruction: PopulateInstruction,
+): Promise<PopulateInstruction> => {
   if (instruction._sources?.github == null) {
     if (instruction._sources?.npm == null) {
       if (
@@ -635,7 +632,7 @@ const validate = async (
  */
 const populate = async (
   db: firestore.Firestore,
-  instructions: PopulationInstructions,
+  instructions: PopulateInstructions,
   collectionName: string,
   options: PopulateOptions = {},
 ): Promise<void> => {

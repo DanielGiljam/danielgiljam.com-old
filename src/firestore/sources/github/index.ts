@@ -12,14 +12,20 @@ import {
   nameRegex,
   removeHeading1,
   replaceImageSourcesRelativeWithAbsolute,
-} from "../../util"
+} from "../../admin/util"
 
-export type GitHubParseable =
+type SupportedField =
   | "name"
   | "description"
   | "lifespan"
   | "latestRelease"
   | "pageContents"
+
+export type GitHubSupportedField = SupportedField
+
+type Directive = "_github"
+
+export type GitHubDirective = Directive
 
 interface Config {
   owner: string
@@ -27,7 +33,7 @@ interface Config {
   countLifespanAsStillOngoing?: boolean
 }
 
-export type GitHubSourceConfig = Config
+export type GitHubConfig = Config
 
 interface Response {
   description?: string
@@ -61,10 +67,10 @@ interface Response {
 
 export type GitHubResponse = Response
 
-class GitHub extends Source<GitHubParseable, Config, Response> {
+class GitHub extends Source<SupportedField, Config, Response> {
   protected static readonly _FANCY_NAME = "GitHub"
   protected static readonly _SUPPORTED_FIELDS_REGEX = /^name|description|lifespan|latestRelease|pageContents$/
-  protected static readonly _PARSERS: Parsers<GitHubParseable, Response> = {
+  protected static readonly _PARSERS: Parsers<SupportedField, Response> = {
     name(id, {pageContents}) {
       if (pageContents != null) {
         const execResult = nameRegex.exec(pageContents.readme)
@@ -124,7 +130,7 @@ class GitHub extends Source<GitHubParseable, Config, Response> {
   private static _GRAPHQL_QUERY_1: string
   private static _GRAPHQL_QUERY_2: string
 
-  static readonly DIRECTIVE = "_github"
+  static readonly DIRECTIVE: Directive = "_github"
 
   protected static readonly _FETCHER: Fetcher<Config, Response> = async (
     id,

@@ -1,7 +1,7 @@
 import chalk from "chalk"
 
-import {NetworkDump} from "../../../../lib/firestore/populate"
-import Project from "../../../../types/data/Project"
+import {NetworkDump} from "../../lib/firestore/populate"
+import Project from "../../types/data/Project"
 
 type NetworkDumpProperty = NetworkDump[keyof NetworkDump]
 

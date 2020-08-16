@@ -1,19 +1,12 @@
 import path from "path"
 
-import {getImportablePaths} from "../util"
-
-import generateJSONSchema, {JSONSchema} from "./generate-json-schema"
+import {getImportablePaths} from "./util"
 
 class PopulateInstructionsValidator {
-  private _jsonSchema: JSONSchema
   constructor() {
-    generateJSONSchema()
-      .then((jsonSchema) => {
-        this._jsonSchema = jsonSchema
-      })
-      .catch((error) => {
-        throw error
-      })
+    this._initialize().catch((error) => {
+      throw error
+    })
   }
 
   private async _initialize(): Promise<void> {

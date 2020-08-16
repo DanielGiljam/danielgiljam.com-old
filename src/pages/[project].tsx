@@ -4,8 +4,8 @@ import {GetStaticPaths, GetStaticProps} from "next"
 import Head from "next/head"
 
 import Project from "../../types/data/Project"
-import initializeAdminSDK from "../firebase/firestore/admin/initialize"
-import projectsConverter from "../firebase/firestore/converters/projects"
+import initializeAdminSDK from "../firestore/admin/initialize"
+import projectsConverter from "../firestore/converters/projects"
 
 interface ProjectPageProps {
   project: Project.Core<string>

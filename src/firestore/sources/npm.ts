@@ -8,19 +8,21 @@ import {
   latestReleaseVersionRegex,
   nameRegex,
   removeHeading1,
-} from "../util"
+} from "../admin/util"
 
-export type NPMParseable =
-  | "name"
-  | "description"
-  | "latestRelease"
-  | "pageContents"
+type SupportedField = "name" | "description" | "latestRelease" | "pageContents"
+
+export type NPMSupportedField = SupportedField
+
+type Directive = "_npm"
+
+export type NPMDirective = Directive
 
 interface Config {
   name: string
 }
 
-export type NPMSourceConfig = Config
+export type NPMConfig = Config
 
 interface Response {
   name: string
@@ -36,12 +38,10 @@ interface Response {
   readme?: string
 }
 
-export type NPMResponse = Response
-
-class NPM extends Source<NPMParseable, Config, Response> {
+class NPM extends Source<SupportedField, Config, Response> {
   protected static readonly _FANCY_NAME = "NPM"
   protected static readonly _SUPPORTED_FIELDS_REGEX = /^name|description|latestRelease|pageContents$/
-  protected static readonly _PARSERS: Parsers<NPMParseable, Response> = {
+  protected static readonly _PARSERS: Parsers<SupportedField, Response> = {
     name(id, {readme}) {
       if (readme != null) {
         const execResult = nameRegex.exec(readme)
@@ -87,7 +87,7 @@ class NPM extends Source<NPMParseable, Config, Response> {
     },
   }
 
-  static readonly DIRECTIVE = "_npm"
+  static readonly DIRECTIVE: Directive = "_npm"
 
   protected static readonly _FETCHER: Fetcher<Config, Response> = async (
     id,

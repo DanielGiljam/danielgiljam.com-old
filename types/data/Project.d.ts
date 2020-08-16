@@ -1,91 +1,57 @@
 import {Moment} from "moment"
 
-declare namespace Project {
-  export namespace Instruction {
-    /** More sources may be added in the future. */
-    export interface Sources {
-      github?: {
-        owner: string
-        name: string
-        countLifespanAsStillOngoing?: boolean
-      }
-      npm?: {
-        name: string
-      }
-    }
-  }
-  /**
-   * A "source directive" can be used instead of an actual field value
-   * to indicate that the value should be sourced from an external source.
-   * This applies only to fields that can have another source than "self".
-   */
-  export interface Instruction {
-    name?: Name | "_github" | "_npm"
-    description?: Description | "_github" | "_npm"
-    lifespan?: Lifespan<string> | "_github"
-    latestRelease?: Release<string> | "_github" | "_npm"
-    links?: Link[]
-    pageContents?: PageContents | "_github" | "_npm"
-    downloads?: Download[]
-    _sources?: Instruction.Sources
-  }
+import {
+  GitHubConfig,
+  GitHubSupportedField,
+} from "../../src/firestore/sources/github"
+import {NPMConfig, NPMSupportedField} from "../../src/firestore/sources/npm"
 
+/**
+ * ABOUT THE "KEEP UP TO DATE!" ANNOTATIONS:
+ * The annotations outline a region and within that region
+ * there should be a line for each Source that resides in
+ * the src/firebase/firestore/admin/sources directory.
+ *
+ * You can expect each Source file to export
+ *   - The Source itself (as the default export)
+ *   - A "supported fields" type (a named export, named as `${Source._FANCY_NAME}SupportedField`)
+ *   - A "directive" type (a named export, named as `${Source._FANCY_NAME}Directive`)
+ *   - A config type (a named export, named as `${Source._FANCY_NAME}Config`)
+ */
+
+declare namespace Project {
   export namespace MetaData {
+    export type Source<C, D = Moment> = C & {
+      /** When this changes, `._modifiedAt` must change too to the same value as this. */
+      refreshedAt: D
+    }
+
     /** More sources may be added in the future. */
     export interface Sources<D = Moment> {
       readonly self: {
         /** When this changes, `._modifiedAt` must change too to the same value as this. */
         modifiedAt: D
       }
-      github?: {
-        owner: string
-        name: string
-        countLifespanAsStillOngoing?: boolean
-        /** When this changes, `._modifiedAt` must change too to the same value as this. */
-        refreshedAt: D
-      }
-      npm?: {
-        name: string
-        /** When this changes, `._modifiedAt` must change too to the same value as this. */
-        refreshedAt: D
-      }
+      // ======> KEEP UP TO DATE! (see top of file for more information)
+      github?: Source<GitHubConfig, D>
+      npm?: Source<NPMConfig, D>
+      // <====== KEEP UP TO DATE! (end)
     }
+
+    export type SourceMapValue<K extends string> =
+      | "self"
+      // ======> KEEP UP TO DATE! (see top of file for more information)
+      | (K extends GitHubSupportedField ? "github" : never)
+      | (K extends NPMSupportedField ? "npm" : never)
+    // <====== KEEP UP TO DATE! (end)
+
     /**
      * Every defined field must have a counterpart within the `SourceMap`.
      * If the "actual" field is undefined, then there may not be a field for it
      * in the `SourceMap`.
      */
-    export interface SourceMap {
-      /**
-       * You can specify the name yourself or it can be crawled from GitHub or from NPM.
-       */
-      name: "self" | "github" | "npm"
-      /**
-       * You can write the description yourself or it can be crawled from GitHub or from NPM.
-       */
-      description: "self" | "github" | "npm"
-      /**
-       * You can specify the lifespan of your project yourself or it can be crawled from GitHub.
-       * It cannot be crawled from NPM, since the dates when package versions were published usually
-       * do not represent the actual start and end dates for a project well enough.
-       */
-      lifespan: "self" | "github"
-      /**
-       * You can specify the latest release yourself or it can be crawled from GitHub or from NPM.
-       */
-      latestRelease?: "self" | "github" | "npm"
-      /**
-       * Links cannot be "outsourced". You must specify links manually.
-       */
-      links?: "self"
-      /**
-       * You can add page contents yourself or it can be crawled from GitHub or from NPM.
-       */
-      pageContents?: "self" | "github" | "npm"
-      /**
-       * Downloads cannot be "outsourced". You must specify downloads manually.
-       */
-      downloads?: "self"
+    export type SourceMap = {
+      [K in keyof Omit<Project.Core, "id">]: SourceMapValue<K>
     }
   }
   export interface MetaData<D = Moment> {

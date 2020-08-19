@@ -1,89 +1,158 @@
 import {promises as fs} from "fs"
+import path from "path"
 
-type POIValidator = (poi: string, sourceNames: string[]) => boolean
+import chalk from "chalk"
+
+type BlockValidator = (sourceName: string) => string
+
+type Validator = BlockValidator[]
+
+interface Validators {
+  [key: string]: Validator
+}
 
 const poiMarkerStart =
-  "======> KEEP UP TO DATE! \\(see top of file for more information\\)"
-const poiMarkerEnd = "<====== KEEP UP TO DATE!"
+  "\\/\\/ ======> KEEP UP TO DATE! \\(see top of file for more information\\)"
+const poiMarkerEnd = "\\/\\/ <====== KEEP UP TO DATE! \\(end\\)"
 
 const poiRegex = new RegExp(
-  `(?<=${poiMarkerStart})[\\s\\S]+(?=${poiMarkerEnd})`,
+  `(?<=${poiMarkerStart})[\\s\\S]+?(?=${poiMarkerEnd})`,
   "g",
 )
 
-const generalPOIValidator = (
-  poi: string,
-  sourceNames: string[],
-  regexTemplate: (sourceName: string) => string,
-): boolean => {
-  let state = true
-  sourceNames.forEach((sourceName) => {
-    state = new RegExp(regexTemplate(sourceName), "i").test(poi)
+const resultHandler = (
+  messageWrapper?: (message: string) => string,
+  messagesWrapper?: (message: string) => string,
+) => (results: Array<PromiseSettledResult<void>>) => {
+  const errorMessages: string[] = []
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      errorMessages.push(
+        messageWrapper?.(result.reason.message) ?? result.reason.message,
+      )
+    }
   })
-  return state
+  if (errorMessages.length !== 0) {
+    throw new Error(
+      messagesWrapper?.(errorMessages.join("\n")) ?? errorMessages.join("\n"),
+    )
+  }
 }
 
-const popInstValidators: POIValidator[] = [
-  (popInstPOI1: string, sourceNames: string[]): boolean =>
-    generalPOIValidator(
-      popInstPOI1,
-      sourceNames,
-      (name) =>
-        `\\| \\(FN extends ${name}SupportedField \\? typeof ${name}\\.DIRECTIVE : never\\)`,
+const throwMissingSourceNamesException = (
+  index: number,
+  missingSourceNames: string[],
+): never => {
+  throw new Error(
+    chalk.red(
+      `${
+        missingSourceNames.length > 1 ? "Sources" : "Source"
+      } ${missingSourceNames
+        .map((name) => chalk.bold(`"${name}"`))
+        .join(", ")} ${
+        missingSourceNames.length > 1 ? "are" : "is"
+      } missing from ${chalk.bold(`${index + 1}. "KEEP UP TO DATE!"`)} block`,
     ),
-  (popInstPOI2: string, sourceNames: string[]): boolean =>
-    generalPOIValidator(
-      popInstPOI2,
-      sourceNames,
-      (name) => `${name}\\?: ${name}Config`,
-    ),
-]
-const projectValidators: POIValidator[] = [
-  (projectPOI1: string, sourceNames: string[]): boolean =>
-    generalPOIValidator(projectPOI1, sourceNames, (name) => ``),
-]
+  )
+}
 
-const collectMatches = (regex: RegExp, subjectString: string): string[] => {
+const blockValidatorExecutor = (
+  sourceNames: string[],
+  blocks: string[],
+) => async (blockValidator: BlockValidator, index: number) => {
+  const missingSourceNames: string[] = []
+  sourceNames.forEach((sourceName) => {
+    if (!new RegExp(blockValidator(sourceName), "i").test(blocks[index])) {
+      missingSourceNames.push(sourceName)
+    }
+  })
+  if (missingSourceNames.length !== 0) {
+    throwMissingSourceNamesException(index, missingSourceNames)
+  }
+}
+
+const validatorExecutor = (sourceNames: string[]) => async ([
+  filePath,
+  blockValidators,
+  blocks,
+]: [string, BlockValidator[], string[]]) =>
+  await Promise.allSettled(
+    blockValidators.map(blockValidatorExecutor(sourceNames, blocks)),
+  ).then(
+    resultHandler(
+      (message) => `${message} in ${path.relative(process.cwd(), filePath)}.`,
+    ),
+  )
+
+const throwNumberOfBlocksException = (
+  expected: number,
+  actual: number,
+  filePath: string,
+): never => {
+  throw new Error(
+    `${chalk.red(
+      `Expected ${chalk.bold(expected)}, found ${chalk.bold(
+        `${actual} "KEEP UP TO DATE!"`,
+      )} blocks`,
+    )} in ${filePath}.`,
+  )
+}
+
+const collectBlocks = (file: string): string[] => {
   const matches: string[] = []
   let execResult: RegExpExecArray | null
-  while ((execResult = regex.exec(subjectString)) != null) {
+  while ((execResult = poiRegex.exec(file)) != null) {
     matches.push(execResult[0])
   }
   return matches
 }
 
+const getBlocks = async ([filePath, blockValidators]: [
+  string,
+  BlockValidator[],
+]): Promise<[string, BlockValidator[], string[]]> => {
+  const file = await fs.readFile(filePath, "utf-8")
+  const blocks = collectBlocks(file)
+  if (blocks.length !== blockValidators.length) {
+    throwNumberOfBlocksException(
+      blockValidators.length,
+      blocks.length,
+      path.relative(process.cwd(), filePath),
+    )
+  }
+  return [filePath, blockValidators, blocks]
+}
+
+const validators: Validators = {
+  [path.resolve(
+    __dirname,
+    "../../../../types/data/PopulateInstructions.d.ts",
+  )]: [
+    (name) =>
+      `\\| \\(FN extends ${name}SupportedField \\? typeof ${name}\\.DIRECTIVE : never\\)`,
+    (name) => `${name}\\?: ${name}Config`,
+  ],
+  [path.resolve(__dirname, "../../../../types/data/Project.d.ts")]: [
+    (name) => `${name}\\?: Source<${name}Config, D>`,
+    (name) => `\\| \\(K extends ${name}SupportedField \\? "${name}" : never\\)`,
+  ],
+}
+
 const validateTypeDefinitions = async (
-  popInstDefinitionFilePath: string,
-  projectDefinitionFilePath: string,
   sourceNames: string[],
-): Promise<boolean> => {
-  const popInstDefinitionFile = await fs.readFile(
-    popInstDefinitionFilePath,
-    "utf-8",
+): Promise<void> => {
+  await Promise.allSettled(
+    Object.entries(validators).map(
+      async (entry) =>
+        await getBlocks(entry).then(validatorExecutor(sourceNames)),
+    ),
+  ).then(
+    resultHandler(
+      undefined,
+      (messages) =>
+        `Validation of type definitions failed. See logging output below.\n\n${messages}`,
+    ),
   )
-  const projectDefinitionFile = await fs.readFile(
-    projectDefinitionFilePath,
-    "utf-8",
-  )
-  const popInstPOIs = collectMatches(poiRegex, popInstDefinitionFile)
-  let popInstValidity: boolean
-  if (popInstPOIs.length === popInstValidators.length) {
-    popInstValidity = popInstValidators.every((validator, index) =>
-      validator(popInstPOIs[index], sourceNames),
-    )
-  } else {
-    popInstValidity = false
-  }
-  const projectPOIs = collectMatches(poiRegex, projectDefinitionFile)
-  let projectValidity: boolean
-  if (projectPOIs.length === projectValidators.length) {
-    projectValidity = projectValidators.every((validator, index) =>
-      validator(projectPOIs[index], sourceNames),
-    )
-  } else {
-    projectValidity = false
-  }
-  return popInstValidity && projectValidity
 }
 
 export default validateTypeDefinitions

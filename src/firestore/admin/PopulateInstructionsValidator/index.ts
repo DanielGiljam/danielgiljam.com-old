@@ -33,17 +33,7 @@ class PopulateInstructionsValidator {
       "../sources",
       ["ts", "js"],
     )
-    if (
-      !(await validateTypeDefinitions(
-        PopulateInstructionsValidator._PATH_TO_POP_INST_D_TS,
-        PopulateInstructionsValidator._PATH_TO_PROJECT_D_TS,
-        Array.from(sources.keys()),
-      ))
-    ) {
-      throw new Error(
-        "Type definitions for Project and PopulateInstructions are outdated/invalid.",
-      )
-    }
+    await validateTypeDefinitions(Array.from(sources.keys()))
     const program = getProgramFromFiles(
       [PopulateInstructionsValidator._PATH_TO_POP_INST_D_TS],
       {
